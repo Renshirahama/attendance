@@ -34,25 +34,25 @@ export function ActionButtons({
       label: "出勤",
       enabled: canClockIn,
       onClick: onClockIn,
-      className: `${BASE} bg-blue-600 text-white hover:bg-blue-700`,
+      className: `${BASE} bg-emerald-600 text-white hover:bg-emerald-700`,
     },
     {
       label: "退勤",
       enabled: canClockOut,
       onClick: onClockOut,
-      className: `${BASE} bg-zinc-900 text-white hover:bg-zinc-800`,
+      className: `${BASE} bg-rose-600 text-white hover:bg-rose-700`,
     },
     {
       label: "休憩開始",
       enabled: canBreakStart,
       onClick: onBreakStart,
-      className: `${BASE} border border-zinc-200 bg-white text-zinc-900 hover:bg-zinc-50`,
+      className: `${BASE} bg-amber-500 text-white hover:bg-amber-600`,
     },
     {
       label: "休憩終了",
       enabled: canBreakEnd,
       onClick: onBreakEnd,
-      className: `${BASE} border border-zinc-200 bg-white text-zinc-900 hover:bg-zinc-50`,
+      className: `${BASE} bg-zinc-400 text-white hover:bg-zinc-500`,
     },
   ];
 

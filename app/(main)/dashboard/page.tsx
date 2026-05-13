@@ -47,12 +47,12 @@ export default function DashboardPage() {
         {stats.map((s) => (
           <div
             key={s.label}
-            className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm"
+            className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm"
           >
-            <p className="text-xs font-medium text-zinc-500">{s.label}</p>
-            <p className="mt-3 flex items-baseline gap-1">
+            <p className="text-xs font-medium text-zinc-500 whitespace-nowrap text-center">{s.label}</p>
+            <p className="mt-4 flex items-baseline justify-center gap-1">
               <span
-                className={`text-3xl font-bold tracking-tight tabular-nums ${s.accent}`}
+                className={`text-4xl font-bold tracking-tight tabular-nums ${s.accent}`}
               >
                 {s.value}
               </span>
