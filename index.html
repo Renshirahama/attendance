@@ -339,6 +339,12 @@
         color: white;
       }
 
+      button.danger {
+        background: var(--red);
+        border-color: var(--red);
+        color: white;
+      }
+
       button.small {
         min-height: 32px;
         padding: 7px 10px;
@@ -501,6 +507,36 @@
 
       .punch-message.success {
         color: var(--primary);
+      }
+
+      .inline-message {
+        min-height: 18px;
+        padding: 0 16px 12px;
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 700;
+      }
+
+      .inline-message.error {
+        color: var(--red);
+      }
+
+      .inline-message.success {
+        color: var(--primary);
+      }
+
+      .admin-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      body.admin-route .app-page {
+        display: none;
+      }
+
+      body:not(.admin-route) .admin-page {
+        display: none;
       }
 
       @media (max-width: 980px) {
@@ -666,7 +702,7 @@
         </nav>
         <div class="nav-title">管理者</div>
         <nav class="nav">
-          <a href="#approvals">✓ 承認管理</a>
+          <a href="/admin/shifts" data-admin-link>✓ シフト承認</a>
           <a href="#members">☰ メンバー勤怠</a>
           <a href="#monthly">■ 月次締め</a>
           <a href="#employees">◎ 従業員マスタ</a>
@@ -674,7 +710,7 @@
       </aside>
 
       <main>
-        <header class="topbar" id="dashboard">
+        <header class="topbar app-page" id="dashboard">
           <div>
             <h1>ダッシュボード</h1>
             <div class="sub">6月18日(木) の勤務状況と承認待ちを確認</div>
@@ -689,7 +725,7 @@
           </div>
         </header>
 
-        <section class="grid cards">
+        <section class="grid cards app-page">
           <div class="card pad">
             <div class="metric">出勤日数</div>
             <div class="number">16<span class="sub">日</span></div>
@@ -712,7 +748,7 @@
           </div>
         </section>
 
-        <section class="grid layout section">
+        <section class="grid layout section app-page">
           <div class="grid">
             <div class="card pad punch" id="punch">
               <div>
@@ -746,20 +782,19 @@
                 </div>
                 <span class="badge warn">2件 承認待ち</span>
               </div>
-              <form class="form">
-                <label>日付<input type="date" value="2026-06-24"></label>
-                <label>開始<input type="time" value="09:00"></label>
-                <label>終了<input type="time" value="18:00"></label>
-                <label>理由<input value="通常シフト希望"></label>
-                <button class="primary full" type="button">申請する</button>
+              <form class="form" id="shiftForm">
+                <label>日付<input id="shiftDate" type="date" value="2026-06-24" required></label>
+                <label>開始<input id="shiftStart" type="time" value="09:00" required></label>
+                <label>終了<input id="shiftEnd" type="time" value="18:00" required></label>
+                <label>理由<input id="shiftReason" value="通常シフト希望" required></label>
+                <button class="primary full" id="shiftSubmit" type="submit">申請する</button>
               </form>
+              <div class="inline-message" id="shiftMessage" role="status"></div>
               <div class="table-wrap">
                 <table>
                   <thead><tr><th>日付</th><th>時間</th><th>理由</th><th>ステータス</th></tr></thead>
-                  <tbody>
-                    <tr><td data-label="日付">6月24日(水)</td><td data-label="時間">09:00-18:00</td><td data-label="理由">通常シフト</td><td data-label="ステータス"><span class="badge warn">申請中</span></td></tr>
-                    <tr><td data-label="日付">6月20日(土)</td><td data-label="時間">10:00-16:00</td><td data-label="理由">短時間勤務</td><td data-label="ステータス"><span class="badge ok">承認済</span></td></tr>
-                    <tr><td data-label="日付">6月12日(金)</td><td data-label="時間">09:00-17:00</td><td data-label="理由">予定変更</td><td data-label="ステータス"><span class="badge danger">却下</span></td></tr>
+                  <tbody id="shiftRows">
+                    <tr><td data-label="状態" colspan="4">ログイン後に申請履歴を読み込みます。</td></tr>
                   </tbody>
                 </table>
               </div>
@@ -899,6 +934,35 @@
             </div>
           </div>
         </section>
+
+        <section class="admin-page" id="adminShiftPage">
+          <header class="topbar">
+            <div>
+              <h1>シフト承認</h1>
+              <div class="sub">全員のシフト申請を確認し、申請中のみ承認・却下できます</div>
+            </div>
+            <button id="backToApp" type="button">通常画面へ戻る</button>
+          </header>
+
+          <div class="card">
+            <div class="card-head">
+              <div>
+                <div class="card-title">シフト申請一覧</div>
+                <div class="sub">承認済み・却下済みの申請は変更できません</div>
+              </div>
+              <button class="primary" id="reloadAdminShifts" type="button">再読み込み</button>
+            </div>
+            <div class="inline-message" id="adminShiftMessage" role="status"></div>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>申請者</th><th>日付</th><th>時間</th><th>理由</th><th>状態</th><th>操作</th></tr></thead>
+                <tbody id="adminShiftRows">
+                  <tr><td data-label="状態" colspan="6">管理者でログインすると申請一覧を読み込みます。</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
       </main>
     </div>
 
@@ -910,7 +974,7 @@
       <a href="#daily" data-tab="daily"><span class="tab-icon">✎</span><span>日報</span></a>
     </nav>
 
-    <script src="./supabase-config.js"></script>
+    <script src="/supabase-config.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.108.2/dist/umd/supabase.js"></script>
     <script>
       const supabaseUrl = window.SUPABASE_URL || "";
@@ -940,7 +1004,21 @@
       const clockInDisplay = document.getElementById("clockInDisplay");
       const clockOutDisplay = document.getElementById("clockOutDisplay");
       const punchMessage = document.getElementById("punchMessage");
+      const shiftForm = document.getElementById("shiftForm");
+      const shiftDate = document.getElementById("shiftDate");
+      const shiftStart = document.getElementById("shiftStart");
+      const shiftEnd = document.getElementById("shiftEnd");
+      const shiftReason = document.getElementById("shiftReason");
+      const shiftSubmit = document.getElementById("shiftSubmit");
+      const shiftMessage = document.getElementById("shiftMessage");
+      const shiftRows = document.getElementById("shiftRows");
+      const adminShiftRows = document.getElementById("adminShiftRows");
+      const adminShiftMessage = document.getElementById("adminShiftMessage");
+      const reloadAdminShifts = document.getElementById("reloadAdminShifts");
+      const backToApp = document.getElementById("backToApp");
       const bottomTabs = [...document.querySelectorAll(".bottom-tabs a")];
+      let currentUser = null;
+      let currentProfile = null;
 
       function setAuthMessage(text, type = "") {
         authMessage.textContent = text;
@@ -973,6 +1051,44 @@
       function setPunchBusy(isBusy) {
         clockIn.disabled = isBusy;
         clockOut.disabled = isBusy;
+      }
+
+      function setShiftMessage(text, type = "") {
+        shiftMessage.textContent = text;
+        shiftMessage.className = `inline-message ${type}`.trim();
+      }
+
+      function setAdminShiftMessage(text, type = "") {
+        adminShiftMessage.textContent = text;
+        adminShiftMessage.className = `inline-message ${type}`.trim();
+      }
+
+      function setShiftBusy(isBusy) {
+        shiftSubmit.disabled = isBusy;
+      }
+
+      function isAdminProfile(profile = currentProfile) {
+        return profile?.role === "admin";
+      }
+
+      function getStatusLabel(statusValue) {
+        if (statusValue === "approved") return { text: "承認済", cls: "ok" };
+        if (statusValue === "rejected") return { text: "却下", cls: "danger" };
+        return { text: "申請中", cls: "warn" };
+      }
+
+      function formatShiftDate(dateString) {
+        if (!dateString) return "-";
+        return new Intl.DateTimeFormat("ja-JP", {
+          timeZone: "Asia/Tokyo",
+          month: "numeric",
+          day: "numeric",
+          weekday: "short",
+        }).format(new Date(`${dateString}T00:00:00+09:00`));
+      }
+
+      function formatShiftTime(timeString) {
+        return timeString ? timeString.slice(0, 5) : "--:--";
       }
 
       function getTokyoDateString(date = new Date()) {
@@ -1042,20 +1158,32 @@
         if (!supabaseClient || !user) return null;
 
         const fullName = user.user_metadata?.full_name || authName.value.trim() || user.email.split("@")[0];
+        const { data: existingProfile, error: selectError } = await supabaseClient
+          .from("profiles")
+          .select("full_name, role")
+          .eq("id", user.id)
+          .maybeSingle();
+
+        if (selectError) {
+          console.warn("profiles select failed", selectError);
+        }
+
+        if (existingProfile) return existingProfile;
+
         const { data, error } = await supabaseClient
           .from("profiles")
-          .upsert({
+          .insert({
             id: user.id,
             full_name: fullName,
             email: user.email,
-            role: user.user_metadata?.role || "user",
-          }, { onConflict: "id" })
+            role: user.user_metadata?.role === "admin" ? "admin" : "member",
+          })
           .select("full_name, role")
           .single();
 
         if (error) {
           console.warn("profiles upsert failed", error);
-          return { full_name: fullName, role: "user" };
+          return { full_name: fullName, role: "member" };
         }
 
         return data;
@@ -1102,6 +1230,183 @@
         } catch (error) {
           setPunchMessage(`打刻データの読み込みに失敗しました: ${error.message}`, "error");
         }
+      }
+
+      function escapeHtml(value) {
+        return String(value ?? "").replace(/[&<>"']/g, (char) => ({
+          "&": "&amp;",
+          "<": "&lt;",
+          ">": "&gt;",
+          "\"": "&quot;",
+          "'": "&#39;",
+        }[char]));
+      }
+
+      function renderMemberShifts(shifts) {
+        if (!shifts.length) {
+          shiftRows.innerHTML = '<tr><td data-label="状態" colspan="4">シフト申請はまだありません。</td></tr>';
+          return;
+        }
+
+        shiftRows.innerHTML = shifts.map((shift) => {
+          const statusInfo = getStatusLabel(shift.status);
+          return `
+            <tr>
+              <td data-label="日付">${escapeHtml(formatShiftDate(shift.shift_date))}</td>
+              <td data-label="時間">${escapeHtml(formatShiftTime(shift.start_time))}-${escapeHtml(formatShiftTime(shift.end_time))}</td>
+              <td data-label="理由">${escapeHtml(shift.reason || "-")}</td>
+              <td data-label="ステータス"><span class="badge ${statusInfo.cls}">${statusInfo.text}</span></td>
+            </tr>
+          `;
+        }).join("");
+      }
+
+      async function loadMemberShifts() {
+        if (!supabaseClient || !currentUser) return;
+
+        try {
+          const { data, error } = await supabaseClient
+            .from("shifts")
+            .select("id, shift_date, start_time, end_time, reason, status")
+            .order("shift_date", { ascending: false })
+            .order("created_at", { ascending: false });
+          if (error) throw error;
+
+          renderMemberShifts(data || []);
+          const pendingCount = (data || []).filter((shift) => shift.status === "pending").length;
+          document.querySelector("#shifts .badge.warn").textContent = `${pendingCount}件 承認待ち`;
+        } catch (error) {
+          setShiftMessage(`シフト履歴の読み込みに失敗しました: ${error.message}`, "error");
+        }
+      }
+
+      async function handleShiftSubmit(event) {
+        event.preventDefault();
+
+        const user = await getSignedInUser();
+        if (!user) return;
+
+        setShiftBusy(true);
+        setShiftMessage("シフト申請を保存中です...");
+
+        try {
+          const { error } = await supabaseClient.from("shifts").insert({
+            user_id: user.id,
+            shift_date: shiftDate.value,
+            start_time: shiftStart.value,
+            end_time: shiftEnd.value,
+            reason: shiftReason.value.trim(),
+            status: "pending",
+          });
+          if (error) throw error;
+
+          setShiftMessage("シフト申請を保存しました。", "success");
+          await loadMemberShifts();
+        } catch (error) {
+          setShiftMessage(`シフト申請に失敗しました: ${error.message}`, "error");
+        } finally {
+          setShiftBusy(false);
+        }
+      }
+
+      function renderAdminShifts(shifts) {
+        if (!shifts.length) {
+          adminShiftRows.innerHTML = '<tr><td data-label="状態" colspan="6">シフト申請はまだありません。</td></tr>';
+          return;
+        }
+
+        adminShiftRows.innerHTML = shifts.map((shift) => {
+          const statusInfo = getStatusLabel(shift.status);
+          const profile = shift.profiles || {};
+          const applicant = profile.full_name || profile.email || "不明";
+          const actions = shift.status === "pending"
+            ? `<div class="admin-actions">
+                <button class="primary small" type="button" data-shift-action="approved" data-shift-id="${shift.id}">承認</button>
+                <button class="danger small" type="button" data-shift-action="rejected" data-shift-id="${shift.id}">却下</button>
+              </div>`
+            : "確定済み";
+
+          return `
+            <tr>
+              <td data-label="申請者">${escapeHtml(applicant)}</td>
+              <td data-label="日付">${escapeHtml(formatShiftDate(shift.shift_date))}</td>
+              <td data-label="時間">${escapeHtml(formatShiftTime(shift.start_time))}-${escapeHtml(formatShiftTime(shift.end_time))}</td>
+              <td data-label="理由">${escapeHtml(shift.reason || "-")}</td>
+              <td data-label="状態"><span class="badge ${statusInfo.cls}">${statusInfo.text}</span></td>
+              <td data-label="操作">${actions}</td>
+            </tr>
+          `;
+        }).join("");
+      }
+
+      async function loadAdminShifts() {
+        if (!supabaseClient || !currentUser || !isAdminProfile()) return;
+
+        setAdminShiftMessage("シフト申請を読み込み中です...");
+        try {
+          const { data, error } = await supabaseClient
+            .from("shifts")
+            .select("id, shift_date, start_time, end_time, reason, status, profiles!shifts_user_id_fkey(full_name, email)")
+            .order("created_at", { ascending: false });
+          if (error) throw error;
+
+          renderAdminShifts(data || []);
+          setAdminShiftMessage("シフト申請を読み込みました。", "success");
+        } catch (error) {
+          setAdminShiftMessage(`シフト申請の読み込みに失敗しました: ${error.message}`, "error");
+        }
+      }
+
+      async function updateShiftDecision(shiftId, nextStatus) {
+        if (!isAdminProfile()) {
+          setAdminShiftMessage("管理者だけが承認・却下できます。", "error");
+          return;
+        }
+
+        const actionLabel = nextStatus === "approved" ? "承認" : "却下";
+        if (!window.confirm(`本当に${actionLabel}しますか?`)) {
+          setAdminShiftMessage(`${actionLabel}をキャンセルしました。`);
+          return;
+        }
+
+        setAdminShiftMessage(nextStatus === "approved" ? "承認中です..." : "却下中です...");
+        const payload = {
+          status: nextStatus,
+          approved_by: currentUser.id,
+          approved_at: new Date().toISOString(),
+          rejection_comment: nextStatus === "rejected" ? "管理者が却下しました" : null,
+        };
+
+        try {
+          const { error } = await supabaseClient
+            .from("shifts")
+            .update(payload)
+            .eq("id", shiftId)
+            .eq("status", "pending");
+          if (error) throw error;
+
+          setAdminShiftMessage(nextStatus === "approved" ? "承認しました。" : "却下しました。", "success");
+          await loadAdminShifts();
+        } catch (error) {
+          setAdminShiftMessage(`更新に失敗しました: ${error.message}`, "error");
+        }
+      }
+
+      function routeAfterAuth() {
+        if (location.pathname === "/admin/shifts") {
+          if (!isAdminProfile()) {
+            document.body.classList.remove("admin-route");
+            history.replaceState(null, "", "/");
+            setShiftMessage("シフト承認画面は管理者だけが利用できます。", "error");
+            return;
+          }
+
+          document.body.classList.add("admin-route");
+          loadAdminShifts();
+          return;
+        }
+
+        document.body.classList.remove("admin-route");
       }
 
       async function saveActionLog(userId, actionType, targetId, detail = {}) {
@@ -1229,6 +1534,8 @@
         const displayName = profile?.full_name || user.email.split("@")[0];
         const role = profile?.role === "admin" ? "管理者" : "一般ユーザー";
 
+        currentUser = user;
+        currentProfile = profile || { full_name: displayName, role: "member" };
         userName.textContent = displayName;
         userRole.textContent = role;
         userAvatar.textContent = displayName.slice(0, 1).toUpperCase();
@@ -1237,12 +1544,17 @@
         document.body.classList.add("is-authenticated");
         moveToProtectedRoute();
         await loadTodayAttendance(user.id);
+        await loadMemberShifts();
+        routeAfterAuth();
       }
 
       function showAuth(message = "") {
+        currentUser = null;
+        currentProfile = null;
         authScreen.classList.remove("is-hidden");
         appShell.classList.add("is-hidden");
         document.body.classList.remove("is-authenticated");
+        document.body.classList.remove("admin-route");
         moveToLoginRoute();
         if (message) setAuthMessage(message);
       }
@@ -1264,7 +1576,7 @@
           options: {
             data: {
               full_name: values.fullName || values.email.split("@")[0],
-              role: "user",
+              role: "member",
             },
           },
         });
@@ -1357,6 +1669,23 @@
       loginButton.addEventListener("click", handleLogin);
       signupButton.addEventListener("click", handleSignUp);
       logoutButton.addEventListener("click", handleLogout);
+      shiftForm.addEventListener("submit", handleShiftSubmit);
+      reloadAdminShifts.addEventListener("click", loadAdminShifts);
+      backToApp.addEventListener("click", () => {
+        history.pushState(null, "", "/");
+        routeAfterAuth();
+      });
+      document.querySelector("[data-admin-link]").addEventListener("click", (event) => {
+        event.preventDefault();
+        history.pushState(null, "", "/admin/shifts");
+        routeAfterAuth();
+      });
+      adminShiftRows.addEventListener("click", (event) => {
+        const button = event.target.closest("[data-shift-action]");
+        if (!button) return;
+        updateShiftDecision(button.dataset.shiftId, button.dataset.shiftAction);
+      });
+      window.addEventListener("popstate", routeAfterAuth);
       bottomTabs.forEach((tab) => {
         tab.addEventListener("click", () => {
           bottomTabs.forEach((item) => item.classList.remove("active"));
