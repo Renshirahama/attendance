@@ -24,16 +24,89 @@
 
       * { box-sizing: border-box; }
 
+      html {
+        scroll-behavior: smooth;
+      }
+
       body {
         margin: 0;
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
         background: var(--bg);
         color: var(--text);
+        overflow-x: hidden;
+      }
+
+      .auth-screen {
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        padding: 24px;
+      }
+
+      .auth-card {
+        width: min(100%, 420px);
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        box-shadow: var(--shadow);
+        padding: 24px;
+      }
+
+      .auth-brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 18px;
+      }
+
+      .auth-brand .brand-mark {
+        width: 40px;
+        height: 40px;
+      }
+
+      .auth-title {
+        margin: 0;
+        font-size: 24px;
+        line-height: 1.25;
+      }
+
+      .auth-form {
+        display: grid;
+        gap: 12px;
+        margin-top: 18px;
+      }
+
+      .auth-actions {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+      }
+
+      .auth-message {
+        min-height: 20px;
+        color: var(--muted);
+        font-size: 13px;
+        font-weight: 700;
+      }
+
+      .auth-message.error {
+        color: var(--red);
+      }
+
+      .auth-message.success {
+        color: var(--primary);
+      }
+
+      .is-hidden {
+        display: none !important;
       }
 
       .shell {
         min-height: 100vh;
+        min-width: 0;
         display: grid;
+        align-items: start;
+        align-content: start;
         grid-template-columns: 248px minmax(0, 1fr);
       }
 
@@ -44,6 +117,10 @@
         position: sticky;
         top: 0;
         height: 100vh;
+      }
+
+      .bottom-tabs {
+        display: none;
       }
 
       .brand {
@@ -98,6 +175,7 @@
       }
 
       main {
+        min-width: 0;
         padding: 24px;
       }
 
@@ -245,6 +323,7 @@
       }
 
       button {
+        min-height: 40px;
         border: 1px solid var(--line);
         background: white;
         color: var(--text);
@@ -258,6 +337,12 @@
         background: var(--primary);
         border-color: var(--primary);
         color: white;
+      }
+
+      button.small {
+        min-height: 32px;
+        padding: 7px 10px;
+        font-size: 12px;
       }
 
       button:disabled {
@@ -290,6 +375,7 @@
 
       .table-wrap {
         overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
       }
 
       .form {
@@ -303,6 +389,7 @@
       select,
       textarea {
         width: 100%;
+        min-height: 40px;
         border: 1px solid var(--line);
         border-radius: 7px;
         padding: 9px 10px;
@@ -401,6 +488,21 @@
         font-weight: 700;
       }
 
+      .punch-message {
+        min-height: 18px;
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 700;
+      }
+
+      .punch-message.error {
+        color: var(--red);
+      }
+
+      .punch-message.success {
+        color: var(--primary);
+      }
+
       @media (max-width: 980px) {
         .shell { grid-template-columns: 1fr; }
         aside { position: static; height: auto; }
@@ -409,17 +511,145 @@
       }
 
       @media (max-width: 680px) {
-        main { padding: 16px; }
+        .auth-screen {
+          padding: 16px;
+        }
+        .auth-card {
+          padding: 18px;
+        }
+        .auth-actions {
+          grid-template-columns: 1fr;
+        }
+        main { padding: 16px 16px 88px; }
         .topbar { align-items: flex-start; flex-direction: column; }
         .cards, .layout, .actions, .form { grid-template-columns: 1fr; }
         .wide { grid-column: auto; }
         .calendar { gap: 4px; padding: 10px; }
         .day { min-height: 54px; padding: 5px; }
+        aside {
+          display: none;
+        }
+        .is-authenticated .bottom-tabs {
+          position: fixed;
+          bottom: 0;
+          left: 0;
+          right: 0;
+          width: auto;
+          max-width: none;
+          z-index: 20;
+          display: flex;
+          gap: 1px;
+          padding: 6px 4px calc(6px + env(safe-area-inset-bottom));
+          overflow: hidden;
+          border-top: 1px solid var(--line);
+          background: rgba(255, 255, 255, .96);
+          box-shadow: 0 -8px 24px rgba(23, 33, 31, .08);
+          backdrop-filter: blur(10px);
+        }
+        .bottom-tabs a {
+          min-width: 0;
+          min-height: 56px;
+          display: flex;
+          flex: 0 0 16%;
+          width: 16%;
+          max-width: 16%;
+          align-items: center;
+          justify-content: center;
+          flex-direction: column;
+          gap: 3px;
+          border-radius: 8px;
+          color: var(--muted);
+          font-size: 8px;
+          font-weight: 800;
+          line-height: 1.1;
+          text-decoration: none;
+        }
+        .bottom-tabs a.active,
+        .bottom-tabs a:focus,
+        .bottom-tabs a:hover {
+          background: var(--primary-soft);
+          color: var(--primary);
+        }
+        .bottom-tabs .tab-icon {
+          font-size: 15px;
+          line-height: 1;
+        }
+        .card-head {
+          align-items: flex-start;
+          flex-direction: column;
+        }
+        button,
+        input,
+        select {
+          min-height: 44px;
+        }
+        table {
+          min-width: 0;
+        }
+        thead {
+          display: none;
+        }
+        tbody,
+        tr,
+        td {
+          display: block;
+          width: 100%;
+        }
+        tr {
+          padding: 10px 0;
+          border-bottom: 1px solid var(--line);
+        }
+        td {
+          display: flex;
+          align-items: flex-start;
+          flex-direction: column;
+          gap: 4px;
+          border-bottom: 0;
+          word-break: break-word;
+        }
+        td::before {
+          content: attr(data-label);
+          flex: 0 0 auto;
+          color: var(--muted);
+          font-size: 12px;
+          font-weight: 800;
+        }
+        th,
+        td {
+          padding: 10px;
+        }
+        section,
+        .card,
+        .topbar {
+          scroll-margin-top: 16px;
+        }
       }
     </style>
   </head>
   <body>
-    <div class="shell">
+    <section class="auth-screen" id="authScreen">
+      <div class="auth-card">
+        <div class="auth-brand">
+          <span class="brand-mark">勤</span>
+          <div>
+            <h1 class="auth-title">勤怠管理</h1>
+            <div class="sub">メールとパスワードで利用を開始</div>
+          </div>
+        </div>
+        <form class="auth-form" id="authForm">
+          <label>メールアドレス<input id="authEmail" type="email" autocomplete="email" placeholder="sample@example.com" required></label>
+          <label>パスワード<input id="authPassword" type="password" autocomplete="current-password" minlength="6" placeholder="6文字以上" required></label>
+          <label>氏名<input id="authName" autocomplete="name" placeholder="山田 太郎"></label>
+          <div class="auth-actions">
+            <button class="primary" id="loginButton" type="button">ログイン</button>
+            <button id="signupButton" type="button">新規登録</button>
+          </div>
+          <div class="auth-message" id="authMessage" role="status"></div>
+        </form>
+      </div>
+    </section>
+
+    <div class="shell is-hidden" id="appShell">
       <aside>
         <div class="brand"><span class="brand-mark">勤</span><span>勤怠管理</span></div>
         <div class="nav-title">メニュー</div>
@@ -450,11 +680,12 @@
             <div class="sub">6月18日(木) の勤務状況と承認待ちを確認</div>
           </div>
           <div class="user">
-            <span class="avatar">山</span>
+            <span class="avatar" id="userAvatar">山</span>
             <div>
-              <strong>山田 太郎</strong>
-              <div class="sub">管理者</div>
+              <strong id="userName">山田 太郎</strong>
+              <div class="sub" id="userRole">管理者</div>
             </div>
+            <button class="small" id="logoutButton" type="button">ログアウト</button>
           </div>
         </header>
 
@@ -494,12 +725,17 @@
                 <span class="badge">勤務形態: 出社</span>
                 <span class="badge blue">勤務中: 3時間20分</span>
               </div>
+              <div class="status-row">
+                <span class="badge" id="clockInDisplay">出勤: 未打刻</span>
+                <span class="badge" id="clockOutDisplay">退勤: 未打刻</span>
+              </div>
               <div class="actions">
                 <button class="primary" id="clockIn">出勤</button>
                 <button id="breakStart">休憩開始</button>
                 <button id="breakEnd">休憩終了</button>
                 <button id="clockOut">退勤</button>
               </div>
+              <div class="punch-message" id="punchMessage" role="status"></div>
             </div>
 
             <div class="card" id="shifts">
@@ -521,9 +757,9 @@
                 <table>
                   <thead><tr><th>日付</th><th>時間</th><th>理由</th><th>ステータス</th></tr></thead>
                   <tbody>
-                    <tr><td>6月24日(水)</td><td>09:00-18:00</td><td>通常シフト</td><td><span class="badge warn">申請中</span></td></tr>
-                    <tr><td>6月20日(土)</td><td>10:00-16:00</td><td>短時間勤務</td><td><span class="badge ok">承認済</span></td></tr>
-                    <tr><td>6月12日(金)</td><td>09:00-17:00</td><td>予定変更</td><td><span class="badge danger">却下</span></td></tr>
+                    <tr><td data-label="日付">6月24日(水)</td><td data-label="時間">09:00-18:00</td><td data-label="理由">通常シフト</td><td data-label="ステータス"><span class="badge warn">申請中</span></td></tr>
+                    <tr><td data-label="日付">6月20日(土)</td><td data-label="時間">10:00-16:00</td><td data-label="理由">短時間勤務</td><td data-label="ステータス"><span class="badge ok">承認済</span></td></tr>
+                    <tr><td data-label="日付">6月12日(金)</td><td data-label="時間">09:00-17:00</td><td data-label="理由">予定変更</td><td data-label="ステータス"><span class="badge danger">却下</span></td></tr>
                   </tbody>
                 </table>
               </div>
@@ -578,8 +814,8 @@
                 <table>
                   <thead><tr><th>日付</th><th>タイトル</th><th>状態</th><th>操作</th></tr></thead>
                   <tbody>
-                    <tr><td>6月18日</td><td>顧客対応と棚卸し</td><td><span class="badge ok">提出済</span></td><td>編集 / 削除</td></tr>
-                    <tr><td>6月17日</td><td>新商品の検品</td><td><span class="badge">下書き</span></td><td>編集 / 削除</td></tr>
+                    <tr><td data-label="日付">6月18日</td><td data-label="タイトル">顧客対応と棚卸し</td><td data-label="状態"><span class="badge ok">提出済</span></td><td data-label="操作">編集 / 削除</td></tr>
+                    <tr><td data-label="日付">6月17日</td><td data-label="タイトル">新商品の検品</td><td data-label="状態"><span class="badge">下書き</span></td><td data-label="操作">編集 / 削除</td></tr>
                   </tbody>
                 </table>
               </div>
@@ -613,10 +849,10 @@
                 <table>
                   <thead><tr><th>種別</th><th>件数</th><th>操作</th></tr></thead>
                   <tbody>
-                    <tr><td><span class="badge violet">シフト</span></td><td>2</td><td>承認 / 却下</td></tr>
-                    <tr><td><span class="badge">休暇</span></td><td>1</td><td>承認 / 却下</td></tr>
-                    <tr><td><span class="badge warn">打刻修正</span></td><td>3</td><td>承認 / 却下</td></tr>
-                    <tr><td><span class="badge blue">残業</span></td><td>1</td><td>承認 / 却下</td></tr>
+                    <tr><td data-label="種別"><span class="badge violet">シフト</span></td><td data-label="件数">2</td><td data-label="操作">承認 / 却下</td></tr>
+                    <tr><td data-label="種別"><span class="badge">休暇</span></td><td data-label="件数">1</td><td data-label="操作">承認 / 却下</td></tr>
+                    <tr><td data-label="種別"><span class="badge warn">打刻修正</span></td><td data-label="件数">3</td><td data-label="操作">承認 / 却下</td></tr>
+                    <tr><td data-label="種別"><span class="badge blue">残業</span></td><td data-label="件数">1</td><td data-label="操作">承認 / 却下</td></tr>
                   </tbody>
                 </table>
               </div>
@@ -666,13 +902,444 @@
       </main>
     </div>
 
+    <nav class="bottom-tabs" aria-label="スマホ用メインメニュー">
+      <a class="active" href="#dashboard" data-tab="dashboard"><span class="tab-icon">▦</span><span>Home</span></a>
+      <a href="#punch" data-tab="punch"><span class="tab-icon">◷</span><span>打刻</span></a>
+      <a href="#shifts" data-tab="shifts"><span class="tab-icon">▤</span><span>シフト</span></a>
+      <a href="#calendar" data-tab="calendar"><span class="tab-icon">□</span><span>予定</span></a>
+      <a href="#daily" data-tab="daily"><span class="tab-icon">✎</span><span>日報</span></a>
+    </nav>
+
+    <script src="./supabase-config.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.108.2/dist/umd/supabase.js"></script>
     <script>
+      const supabaseUrl = window.SUPABASE_URL || "";
+      const supabaseAnonKey = window.SUPABASE_ANON_KEY || "";
+      const supabaseClient = supabaseUrl && supabaseAnonKey && window.supabase
+        ? window.supabase.createClient(supabaseUrl, supabaseAnonKey)
+        : null;
+
+      const authScreen = document.getElementById("authScreen");
+      const appShell = document.getElementById("appShell");
+      const authEmail = document.getElementById("authEmail");
+      const authPassword = document.getElementById("authPassword");
+      const authName = document.getElementById("authName");
+      const authMessage = document.getElementById("authMessage");
+      const loginButton = document.getElementById("loginButton");
+      const signupButton = document.getElementById("signupButton");
+      const logoutButton = document.getElementById("logoutButton");
+      const userAvatar = document.getElementById("userAvatar");
+      const userName = document.getElementById("userName");
+      const userRole = document.getElementById("userRole");
       const clock = document.getElementById("clock");
       const status = document.getElementById("workStatus");
       const clockIn = document.getElementById("clockIn");
       const breakStart = document.getElementById("breakStart");
       const breakEnd = document.getElementById("breakEnd");
       const clockOut = document.getElementById("clockOut");
+      const clockInDisplay = document.getElementById("clockInDisplay");
+      const clockOutDisplay = document.getElementById("clockOutDisplay");
+      const punchMessage = document.getElementById("punchMessage");
+      const bottomTabs = [...document.querySelectorAll(".bottom-tabs a")];
+
+      function setAuthMessage(text, type = "") {
+        authMessage.textContent = text;
+        authMessage.className = `auth-message ${type}`.trim();
+      }
+
+      function moveToLoginRoute() {
+        if (location.pathname !== "/login") {
+          history.replaceState(null, "", "/login");
+        }
+      }
+
+      function moveToProtectedRoute() {
+        if (location.pathname === "/login") {
+          history.replaceState(null, "", "/");
+        }
+      }
+
+      function setAuthBusy(isBusy) {
+        loginButton.disabled = isBusy;
+        signupButton.disabled = isBusy;
+        logoutButton.disabled = isBusy;
+      }
+
+      function setPunchMessage(text, type = "") {
+        punchMessage.textContent = text;
+        punchMessage.className = `punch-message ${type}`.trim();
+      }
+
+      function setPunchBusy(isBusy) {
+        clockIn.disabled = isBusy;
+        clockOut.disabled = isBusy;
+      }
+
+      function getTokyoDateString(date = new Date()) {
+        const parts = new Intl.DateTimeFormat("en-CA", {
+          timeZone: "Asia/Tokyo",
+          year: "numeric",
+          month: "2-digit",
+          day: "2-digit",
+        }).formatToParts(date);
+        const values = Object.fromEntries(parts.map((part) => [part.type, part.value]));
+        return `${values.year}-${values.month}-${values.day}`;
+      }
+
+      function getTokyoTimeString(date = new Date()) {
+        return new Intl.DateTimeFormat("ja-JP", {
+          timeZone: "Asia/Tokyo",
+          hour: "2-digit",
+          minute: "2-digit",
+        }).format(date);
+      }
+
+      function formatTokyoTime(isoString) {
+        if (!isoString) return "未打刻";
+        return getTokyoTimeString(new Date(isoString));
+      }
+
+      function renderAttendance(attendance) {
+        if (!attendance) {
+          setStatus("未出勤", "");
+          clockInDisplay.textContent = "出勤: 未打刻";
+          clockOutDisplay.textContent = "退勤: 未打刻";
+          return;
+        }
+
+        clockInDisplay.textContent = `出勤: ${formatTokyoTime(attendance.clock_in_at)}`;
+        clockOutDisplay.textContent = `退勤: ${formatTokyoTime(attendance.clock_out_at)}`;
+
+        if (attendance.status === "finished" || attendance.clock_out_at) {
+          setStatus("退勤済", "");
+        } else if (attendance.status === "on_break") {
+          setStatus("休憩中", "warn");
+        } else if (attendance.clock_in_at) {
+          setStatus("勤務中", "ok");
+        } else {
+          setStatus("未出勤", "");
+        }
+      }
+
+      function validateAuthForm() {
+        const email = authEmail.value.trim();
+        const password = authPassword.value;
+
+        if (!email) {
+          setAuthMessage("メールアドレスを入力してください。", "error");
+          return null;
+        }
+
+        if (password.length < 6) {
+          setAuthMessage("パスワードは6文字以上で入力してください。", "error");
+          return null;
+        }
+
+        return { email, password, fullName: authName.value.trim() };
+      }
+
+      async function upsertProfile(user) {
+        if (!supabaseClient || !user) return null;
+
+        const fullName = user.user_metadata?.full_name || authName.value.trim() || user.email.split("@")[0];
+        const { data, error } = await supabaseClient
+          .from("profiles")
+          .upsert({
+            id: user.id,
+            full_name: fullName,
+            email: user.email,
+            role: user.user_metadata?.role || "user",
+          }, { onConflict: "id" })
+          .select("full_name, role")
+          .single();
+
+        if (error) {
+          console.warn("profiles upsert failed", error);
+          return { full_name: fullName, role: "user" };
+        }
+
+        return data;
+      }
+
+      async function getSignedInUser() {
+        if (!supabaseClient) {
+          setPunchMessage("Supabase URL と anon key を設定してください。", "error");
+          return null;
+        }
+
+        const { data, error } = await supabaseClient.auth.getUser();
+        if (error || !data.user) {
+          setPunchMessage("ログインしてから打刻してください。", "error");
+          showAuth("ログインしてから打刻してください。");
+          return null;
+        }
+
+        return data.user;
+      }
+
+      async function findTodayAttendance(userId, workDate) {
+        const { data, error } = await supabaseClient
+          .from("attendances")
+          .select("id, clock_in_at, clock_out_at, status")
+          .eq("user_id", userId)
+          .eq("work_date", workDate)
+          .maybeSingle();
+
+        if (error) throw error;
+        return data;
+      }
+
+      async function loadTodayAttendance(userId) {
+        if (!supabaseClient || !userId) return;
+
+        try {
+          const workDate = getTokyoDateString();
+          const attendance = await findTodayAttendance(userId, workDate);
+          renderAttendance(attendance);
+          if (attendance?.clock_in_at || attendance?.clock_out_at) {
+            setPunchMessage("今日の打刻データを読み込みました。", "success");
+          }
+        } catch (error) {
+          setPunchMessage(`打刻データの読み込みに失敗しました: ${error.message}`, "error");
+        }
+      }
+
+      async function saveActionLog(userId, actionType, targetId, detail = {}) {
+        const { error } = await supabaseClient.from("action_logs").insert({
+          user_id: userId,
+          action_type: actionType,
+          target_table: "attendances",
+          target_id: targetId,
+          detail,
+        });
+
+        if (error) console.warn("action log failed", error);
+      }
+
+      async function handleClockIn() {
+        const user = await getSignedInUser();
+        if (!user) return;
+
+        const now = new Date();
+        const workDate = getTokyoDateString(now);
+        const clockInAt = now.toISOString();
+
+        setPunchBusy(true);
+        setPunchMessage("出勤時刻を保存中です...");
+
+        try {
+          const current = await findTodayAttendance(user.id, workDate);
+          let attendance;
+
+          if (current) {
+            const { data, error } = await supabaseClient
+              .from("attendances")
+              .update({
+                clock_in_at: current.clock_in_at || clockInAt,
+                status: "working",
+              })
+              .eq("id", current.id)
+              .select("id")
+              .single();
+            if (error) throw error;
+            attendance = data;
+          } else {
+            const { data, error } = await supabaseClient
+              .from("attendances")
+              .insert({
+                user_id: user.id,
+                work_date: workDate,
+                clock_in_at: clockInAt,
+                status: "working",
+              })
+              .select("id")
+              .single();
+            if (error) throw error;
+            attendance = data;
+          }
+
+          await saveActionLog(user.id, "clock_in", attendance.id, {
+            work_date: workDate,
+            clock_in_at: clockInAt,
+            timezone: "Asia/Tokyo",
+          });
+          renderAttendance({
+            id: attendance.id,
+            clock_in_at: current?.clock_in_at || clockInAt,
+            clock_out_at: current?.clock_out_at || null,
+            status: "working",
+          });
+          setPunchMessage(`${getTokyoTimeString(now)} に出勤を保存しました。`, "success");
+        } catch (error) {
+          setPunchMessage(`出勤保存に失敗しました: ${error.message}`, "error");
+        } finally {
+          setPunchBusy(false);
+        }
+      }
+
+      async function handleClockOut() {
+        const user = await getSignedInUser();
+        if (!user) return;
+
+        const now = new Date();
+        const workDate = getTokyoDateString(now);
+        const clockOutAt = now.toISOString();
+
+        setPunchBusy(true);
+        setPunchMessage("退勤時刻を保存中です...");
+
+        try {
+          const current = await findTodayAttendance(user.id, workDate);
+          if (!current) {
+            throw new Error("今日の出勤レコードがありません。先に出勤してください。");
+          }
+
+          const { data, error } = await supabaseClient
+            .from("attendances")
+            .update({
+              clock_out_at: clockOutAt,
+              status: "finished",
+            })
+            .eq("id", current.id)
+            .select("id")
+            .single();
+          if (error) throw error;
+
+          await saveActionLog(user.id, "clock_out", data.id, {
+            work_date: workDate,
+            clock_out_at: clockOutAt,
+            timezone: "Asia/Tokyo",
+          });
+          renderAttendance({
+            id: data.id,
+            clock_in_at: current.clock_in_at,
+            clock_out_at: clockOutAt,
+            status: "finished",
+          });
+          setPunchMessage(`${getTokyoTimeString(now)} に退勤を保存しました。`, "success");
+        } catch (error) {
+          setPunchMessage(`退勤保存に失敗しました: ${error.message}`, "error");
+        } finally {
+          setPunchBusy(false);
+        }
+      }
+
+      async function showApp(user) {
+        const profile = await upsertProfile(user);
+        const displayName = profile?.full_name || user.email.split("@")[0];
+        const role = profile?.role === "admin" ? "管理者" : "一般ユーザー";
+
+        userName.textContent = displayName;
+        userRole.textContent = role;
+        userAvatar.textContent = displayName.slice(0, 1).toUpperCase();
+        authScreen.classList.add("is-hidden");
+        appShell.classList.remove("is-hidden");
+        document.body.classList.add("is-authenticated");
+        moveToProtectedRoute();
+        await loadTodayAttendance(user.id);
+      }
+
+      function showAuth(message = "") {
+        authScreen.classList.remove("is-hidden");
+        appShell.classList.add("is-hidden");
+        document.body.classList.remove("is-authenticated");
+        moveToLoginRoute();
+        if (message) setAuthMessage(message);
+      }
+
+      async function handleSignUp() {
+        const values = validateAuthForm();
+        if (!values) return;
+
+        if (!supabaseClient) {
+          setAuthMessage("Supabase URL と anon key を設定してください。", "error");
+          return;
+        }
+
+        setAuthBusy(true);
+        setAuthMessage("新規登録中です...");
+        const { data, error } = await supabaseClient.auth.signUp({
+          email: values.email,
+          password: values.password,
+          options: {
+            data: {
+              full_name: values.fullName || values.email.split("@")[0],
+              role: "user",
+            },
+          },
+        });
+        setAuthBusy(false);
+
+        if (error) {
+          setAuthMessage(error.message, "error");
+          return;
+        }
+
+        if (data.session) {
+          await showApp(data.user);
+          setAuthMessage("");
+          return;
+        }
+
+        setAuthMessage("確認メールを送信しました。メール確認後にログインしてください。", "success");
+      }
+
+      async function handleLogin() {
+        const values = validateAuthForm();
+        if (!values) return;
+
+        if (!supabaseClient) {
+          setAuthMessage("Supabase URL と anon key を設定してください。", "error");
+          return;
+        }
+
+        setAuthBusy(true);
+        setAuthMessage("ログイン中です...");
+        const { data, error } = await supabaseClient.auth.signInWithPassword({
+          email: values.email,
+          password: values.password,
+        });
+        setAuthBusy(false);
+
+        if (error) {
+          setAuthMessage(error.message, "error");
+          return;
+        }
+
+        await showApp(data.user);
+        setAuthMessage("");
+      }
+
+      async function handleLogout() {
+        if (!supabaseClient) return;
+
+        setAuthBusy(true);
+        await supabaseClient.auth.signOut();
+        setAuthBusy(false);
+        showAuth("ログアウトしました。");
+      }
+
+      async function initializeAuth() {
+        if (!supabaseClient) {
+          showAuth("Supabase URL と anon key を supabase-config.js に設定してください。");
+          return;
+        }
+
+        const { data } = await supabaseClient.auth.getSession();
+        if (data.session?.user) {
+          await showApp(data.session.user);
+        } else {
+          showAuth();
+        }
+
+        supabaseClient.auth.onAuthStateChange(async (event, session) => {
+          if (event === "SIGNED_OUT" || !session?.user) {
+            showAuth();
+            return;
+          }
+          await showApp(session.user);
+        });
+      }
 
       function tick() {
         clock.textContent = new Date().toLocaleTimeString("ja-JP");
@@ -683,12 +1350,22 @@
         status.className = `badge ${cls}`;
       }
 
-      clockIn.addEventListener("click", () => setStatus("勤務中", "ok"));
+      clockIn.addEventListener("click", handleClockIn);
       breakStart.addEventListener("click", () => setStatus("休憩中", "warn"));
       breakEnd.addEventListener("click", () => setStatus("勤務中", "ok"));
-      clockOut.addEventListener("click", () => setStatus("退勤済", ""));
+      clockOut.addEventListener("click", handleClockOut);
+      loginButton.addEventListener("click", handleLogin);
+      signupButton.addEventListener("click", handleSignUp);
+      logoutButton.addEventListener("click", handleLogout);
+      bottomTabs.forEach((tab) => {
+        tab.addEventListener("click", () => {
+          bottomTabs.forEach((item) => item.classList.remove("active"));
+          tab.classList.add("active");
+        });
+      });
       tick();
       setInterval(tick, 1000);
+      initializeAuth();
     </script>
   </body>
 </html>

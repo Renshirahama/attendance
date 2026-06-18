@@ -109,6 +109,16 @@
 
 データの保存方法やテーブル設計については、AI に任せる方針とします。
 
+Supabase では、次の 5 テーブルを作ります。
+
+- `profiles`: ユーザー情報を保存する。`id` は Supabase Auth の `auth.users.id` と紐付ける。列は `id`, `full_name`, `email`, `role`, `department`, `employment_type`, `paid_leave_days`, `created_at`, `updated_at`。
+- `attendances`: 出退勤を保存する。`user_id` で `profiles.id` と紐付ける。列は `id`, `user_id`, `work_date`, `clock_in_at`, `break_start_at`, `break_end_at`, `clock_out_at`, `status`, `note`, `created_at`, `updated_at`。
+- `shifts`: シフト申請を保存する。`user_id` で申請者、`approved_by` で承認者を `profiles.id` と紐付ける。列は `id`, `user_id`, `shift_date`, `start_time`, `end_time`, `reason`, `status`, `approved_by`, `approved_at`, `rejection_comment`, `created_at`, `updated_at`。
+- `daily_reports`: 日報を保存する。`user_id` で `profiles.id` と紐付ける。列は `id`, `user_id`, `report_date`, `title`, `body`, `status`, `created_at`, `updated_at`。
+- `action_logs`: 操作ログを保存する。`user_id` で操作したユーザーを `profiles.id` と紐付ける。列は `id`, `user_id`, `action_type`, `target_table`, `target_id`, `detail`, `created_at`。
+
+ログインユーザーとの紐付け、テーブル間のつなぎ、SQL 実行は AI に任せます。
+
 ## 読み終わった後の確認
 
 - `## 目的` について、誰が・何に困って・どう解決するかを説明できる
