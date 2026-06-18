@@ -1,0 +1,694 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>勤怠管理アプリ</title>
+    <style>
+      :root {
+        --bg: #f7faf9;
+        --panel: #ffffff;
+        --line: #dfe8e5;
+        --text: #17211f;
+        --muted: #66736f;
+        --primary: #197867;
+        --primary-soft: #e6f4f0;
+        --amber: #b7791f;
+        --amber-soft: #fff7e6;
+        --red: #c53030;
+        --red-soft: #fff0f0;
+        --blue: #2563eb;
+        --violet: #7c3aed;
+        --shadow: 0 10px 30px rgba(23, 33, 31, .07);
+      }
+
+      * { box-sizing: border-box; }
+
+      body {
+        margin: 0;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        background: var(--bg);
+        color: var(--text);
+      }
+
+      .shell {
+        min-height: 100vh;
+        display: grid;
+        grid-template-columns: 248px minmax(0, 1fr);
+      }
+
+      aside {
+        background: #ffffff;
+        border-right: 1px solid var(--line);
+        padding: 18px 14px;
+        position: sticky;
+        top: 0;
+        height: 100vh;
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 18px;
+        font-weight: 700;
+        margin-bottom: 22px;
+      }
+
+      .brand-mark {
+        width: 30px;
+        height: 30px;
+        border-radius: 8px;
+        background: var(--primary);
+        color: white;
+        display: grid;
+        place-items: center;
+        font-weight: 800;
+      }
+
+      .nav-title {
+        color: var(--muted);
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: .08em;
+        margin: 18px 10px 8px;
+      }
+
+      .nav {
+        display: grid;
+        gap: 4px;
+      }
+
+      .nav a {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 9px 10px;
+        border-radius: 7px;
+        color: #25322f;
+        text-decoration: none;
+        font-size: 14px;
+        font-weight: 600;
+      }
+
+      .nav a.active,
+      .nav a:hover {
+        background: var(--primary-soft);
+        color: var(--primary);
+      }
+
+      main {
+        padding: 24px;
+      }
+
+      .topbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        margin-bottom: 22px;
+      }
+
+      h1 {
+        margin: 0;
+        font-size: 28px;
+        line-height: 1.25;
+      }
+
+      .sub {
+        color: var(--muted);
+        margin-top: 4px;
+        font-size: 14px;
+      }
+
+      .user {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 8px 10px;
+      }
+
+      .avatar {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        background: var(--primary);
+        color: white;
+        display: grid;
+        place-items: center;
+        font-size: 13px;
+        font-weight: 700;
+      }
+
+      .grid {
+        display: grid;
+        gap: 16px;
+      }
+
+      .cards {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+      }
+
+      .layout {
+        grid-template-columns: minmax(0, 1.4fr) minmax(320px, .9fr);
+        align-items: start;
+      }
+
+      .card {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        box-shadow: var(--shadow);
+      }
+
+      .card.pad {
+        padding: 16px;
+      }
+
+      .card-head {
+        padding: 16px 16px 0;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+      }
+
+      .card-title {
+        font-weight: 700;
+        font-size: 15px;
+      }
+
+      .metric {
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 700;
+      }
+
+      .number {
+        font-size: 30px;
+        font-weight: 800;
+        margin-top: 8px;
+      }
+
+      .delta {
+        color: var(--muted);
+        font-size: 12px;
+        margin-top: 4px;
+      }
+
+      .punch {
+        display: grid;
+        gap: 14px;
+        text-align: center;
+      }
+
+      .clock {
+        font-size: 42px;
+        font-weight: 800;
+        font-variant-numeric: tabular-nums;
+      }
+
+      .status-row {
+        display: flex;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        min-height: 24px;
+        padding: 3px 8px;
+        border-radius: 999px;
+        border: 1px solid var(--line);
+        background: #fff;
+        font-size: 12px;
+        font-weight: 700;
+        white-space: nowrap;
+      }
+
+      .badge.ok { background: var(--primary-soft); color: var(--primary); border-color: #b9ded5; }
+      .badge.warn { background: var(--amber-soft); color: var(--amber); border-color: #f3d397; }
+      .badge.danger { background: var(--red-soft); color: var(--red); border-color: #f3b3b3; }
+      .badge.blue { color: var(--blue); }
+      .badge.violet { color: var(--violet); }
+
+      .actions {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 8px;
+      }
+
+      button {
+        border: 1px solid var(--line);
+        background: white;
+        color: var(--text);
+        border-radius: 7px;
+        padding: 10px 12px;
+        font-weight: 700;
+        cursor: pointer;
+      }
+
+      button.primary {
+        background: var(--primary);
+        border-color: var(--primary);
+        color: white;
+      }
+
+      button:disabled {
+        opacity: .45;
+        cursor: not-allowed;
+      }
+
+      .section {
+        margin-top: 16px;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+
+      th,
+      td {
+        text-align: left;
+        padding: 11px 12px;
+        border-bottom: 1px solid var(--line);
+        font-size: 13px;
+      }
+
+      th {
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 800;
+      }
+
+      .table-wrap {
+        overflow-x: auto;
+      }
+
+      .form {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 10px;
+        padding: 16px;
+      }
+
+      input,
+      select,
+      textarea {
+        width: 100%;
+        border: 1px solid var(--line);
+        border-radius: 7px;
+        padding: 9px 10px;
+        background: white;
+        color: var(--text);
+        font: inherit;
+      }
+
+      textarea {
+        min-height: 72px;
+        resize: vertical;
+      }
+
+      label {
+        display: grid;
+        gap: 6px;
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 700;
+      }
+
+      .wide { grid-column: span 2; }
+      .full { grid-column: 1 / -1; }
+
+      .calendar {
+        display: grid;
+        grid-template-columns: repeat(7, minmax(0, 1fr));
+        gap: 6px;
+        padding: 16px;
+      }
+
+      .day {
+        min-height: 68px;
+        border: 1px solid var(--line);
+        border-radius: 7px;
+        padding: 7px;
+        background: #fff;
+      }
+
+      .day.muted {
+        background: #f4f6f5;
+        color: #9aa5a2;
+      }
+
+      .day-num {
+        font-size: 12px;
+        font-weight: 800;
+      }
+
+      .marks {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+        margin-top: 8px;
+      }
+
+      .dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--primary);
+      }
+
+      .dot.leave { background: var(--amber); }
+      .dot.remote { background: var(--blue); }
+
+      .timeline {
+        display: grid;
+        gap: 10px;
+        padding: 16px;
+      }
+
+      .timeline-item {
+        display: grid;
+        grid-template-columns: 20px minmax(0, 1fr) auto;
+        gap: 8px;
+        align-items: center;
+        font-size: 13px;
+      }
+
+      .timeline-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: var(--primary);
+        margin: auto;
+      }
+
+      .alert {
+        padding: 12px 14px;
+        border-radius: 8px;
+        border: 1px solid #f1d093;
+        background: var(--amber-soft);
+        color: #7c4a03;
+        font-size: 13px;
+        font-weight: 700;
+      }
+
+      @media (max-width: 980px) {
+        .shell { grid-template-columns: 1fr; }
+        aside { position: static; height: auto; }
+        .cards, .layout { grid-template-columns: 1fr 1fr; }
+        .form { grid-template-columns: 1fr 1fr; }
+      }
+
+      @media (max-width: 680px) {
+        main { padding: 16px; }
+        .topbar { align-items: flex-start; flex-direction: column; }
+        .cards, .layout, .actions, .form { grid-template-columns: 1fr; }
+        .wide { grid-column: auto; }
+        .calendar { gap: 4px; padding: 10px; }
+        .day { min-height: 54px; padding: 5px; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="shell">
+      <aside>
+        <div class="brand"><span class="brand-mark">勤</span><span>勤怠管理</span></div>
+        <div class="nav-title">メニュー</div>
+        <nav class="nav">
+          <a class="active" href="#dashboard">▦ ダッシュボード</a>
+          <a href="#punch">◷ 打刻</a>
+          <a href="#shifts">▤ シフト申請</a>
+          <a href="#leaves">◇ 休暇申請</a>
+          <a href="#corrections">↺ 打刻修正</a>
+          <a href="#overtime">＋ 残業申請</a>
+          <a href="#calendar">□ カレンダー</a>
+          <a href="#daily">✎ 日報</a>
+          <a href="#reports">▥ 月次レポート</a>
+        </nav>
+        <div class="nav-title">管理者</div>
+        <nav class="nav">
+          <a href="#approvals">✓ 承認管理</a>
+          <a href="#members">☰ メンバー勤怠</a>
+          <a href="#monthly">■ 月次締め</a>
+          <a href="#employees">◎ 従業員マスタ</a>
+        </nav>
+      </aside>
+
+      <main>
+        <header class="topbar" id="dashboard">
+          <div>
+            <h1>ダッシュボード</h1>
+            <div class="sub">6月18日(木) の勤務状況と承認待ちを確認</div>
+          </div>
+          <div class="user">
+            <span class="avatar">山</span>
+            <div>
+              <strong>山田 太郎</strong>
+              <div class="sub">管理者</div>
+            </div>
+          </div>
+        </header>
+
+        <section class="grid cards">
+          <div class="card pad">
+            <div class="metric">出勤日数</div>
+            <div class="number">16<span class="sub">日</span></div>
+            <div class="delta">前月比 +2日</div>
+          </div>
+          <div class="card pad">
+            <div class="metric">勤務時間</div>
+            <div class="number">126.5<span class="sub">h</span></div>
+            <div class="delta">通常 112h / 残業 14.5h</div>
+          </div>
+          <div class="card pad">
+            <div class="metric">承認待ち</div>
+            <div class="number">7<span class="sub">件</span></div>
+            <div class="delta">シフト・休暇・修正・残業</div>
+          </div>
+          <div class="card pad">
+            <div class="metric">チーム出勤率</div>
+            <div class="number">82<span class="sub">%</span></div>
+            <div class="delta">18 / 22名 出勤中</div>
+          </div>
+        </section>
+
+        <section class="grid layout section">
+          <div class="grid">
+            <div class="card pad punch" id="punch">
+              <div>
+                <div class="card-title">打刻</div>
+                <div class="sub">出勤・退勤・休憩の記録</div>
+              </div>
+              <div class="clock" id="clock">09:00:00</div>
+              <div class="status-row">
+                <span class="badge ok" id="workStatus">勤務中</span>
+                <span class="badge">勤務形態: 出社</span>
+                <span class="badge blue">勤務中: 3時間20分</span>
+              </div>
+              <div class="actions">
+                <button class="primary" id="clockIn">出勤</button>
+                <button id="breakStart">休憩開始</button>
+                <button id="breakEnd">休憩終了</button>
+                <button id="clockOut">退勤</button>
+              </div>
+            </div>
+
+            <div class="card" id="shifts">
+              <div class="card-head">
+                <div>
+                  <div class="card-title">シフト申請</div>
+                  <div class="sub">申請フォームと履歴ステータス</div>
+                </div>
+                <span class="badge warn">2件 承認待ち</span>
+              </div>
+              <form class="form">
+                <label>日付<input type="date" value="2026-06-24"></label>
+                <label>開始<input type="time" value="09:00"></label>
+                <label>終了<input type="time" value="18:00"></label>
+                <label>理由<input value="通常シフト希望"></label>
+                <button class="primary full" type="button">申請する</button>
+              </form>
+              <div class="table-wrap">
+                <table>
+                  <thead><tr><th>日付</th><th>時間</th><th>理由</th><th>ステータス</th></tr></thead>
+                  <tbody>
+                    <tr><td>6月24日(水)</td><td>09:00-18:00</td><td>通常シフト</td><td><span class="badge warn">申請中</span></td></tr>
+                    <tr><td>6月20日(土)</td><td>10:00-16:00</td><td>短時間勤務</td><td><span class="badge ok">承認済</span></td></tr>
+                    <tr><td>6月12日(金)</td><td>09:00-17:00</td><td>予定変更</td><td><span class="badge danger">却下</span></td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="card" id="calendar">
+              <div class="card-head">
+                <div>
+                  <div class="card-title">カレンダー</div>
+                  <div class="sub">月間の出勤・休暇・シフト状況</div>
+                </div>
+                <div class="status-row">
+                  <span class="badge ok">出勤</span>
+                  <span class="badge warn">休暇</span>
+                  <span class="badge blue">リモート</span>
+                </div>
+              </div>
+              <div class="calendar" aria-label="月間カレンダー">
+                <div class="day muted"><div class="day-num">日</div></div>
+                <div class="day muted"><div class="day-num">月</div></div>
+                <div class="day muted"><div class="day-num">火</div></div>
+                <div class="day muted"><div class="day-num">水</div></div>
+                <div class="day muted"><div class="day-num">木</div></div>
+                <div class="day muted"><div class="day-num">金</div></div>
+                <div class="day muted"><div class="day-num">土</div></div>
+                <div class="day"><div class="day-num">1</div><div class="marks"><span class="dot"></span></div></div>
+                <div class="day"><div class="day-num">2</div><div class="marks"><span class="dot remote"></span></div></div>
+                <div class="day"><div class="day-num">3</div><div class="marks"><span class="dot"></span></div></div>
+                <div class="day"><div class="day-num">4</div><div class="marks"><span class="dot"></span></div></div>
+                <div class="day"><div class="day-num">5</div><div class="marks"><span class="dot leave"></span></div></div>
+                <div class="day"><div class="day-num">6</div></div>
+                <div class="day"><div class="day-num">7</div></div>
+                <div class="day"><div class="day-num">8</div><div class="marks"><span class="dot"></span></div></div>
+                <div class="day"><div class="day-num">9</div><div class="marks"><span class="dot"></span></div></div>
+                <div class="day"><div class="day-num">10</div><div class="marks"><span class="dot remote"></span></div></div>
+                <div class="day"><div class="day-num">11</div><div class="marks"><span class="dot"></span></div></div>
+                <div class="day"><div class="day-num">12</div><div class="marks"><span class="dot"></span></div></div>
+                <div class="day"><div class="day-num">13</div></div>
+                <div class="day"><div class="day-num">14</div></div>
+              </div>
+            </div>
+
+            <div class="card" id="daily">
+              <div class="card-head">
+                <div>
+                  <div class="card-title">日報</div>
+                  <div class="sub">作成・一覧表示・編集・削除</div>
+                </div>
+                <button class="primary">新規作成</button>
+              </div>
+              <div class="table-wrap">
+                <table>
+                  <thead><tr><th>日付</th><th>タイトル</th><th>状態</th><th>操作</th></tr></thead>
+                  <tbody>
+                    <tr><td>6月18日</td><td>顧客対応と棚卸し</td><td><span class="badge ok">提出済</span></td><td>編集 / 削除</td></tr>
+                    <tr><td>6月17日</td><td>新商品の検品</td><td><span class="badge">下書き</span></td><td>編集 / 削除</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <div class="grid">
+            <div class="alert">打刻忘れ: 6月16日の退勤が未入力です。打刻修正申請から修正してください。</div>
+
+            <div class="card">
+              <div class="card-head">
+                <div class="card-title">今日のタイムライン</div>
+              </div>
+              <div class="timeline">
+                <div class="timeline-item"><span class="timeline-dot"></span><span>出勤</span><strong>09:02</strong></div>
+                <div class="timeline-item"><span class="timeline-dot" style="background: var(--amber)"></span><span>休憩開始</span><strong>12:10</strong></div>
+                <div class="timeline-item"><span class="timeline-dot" style="background: var(--amber)"></span><span>休憩終了</span><strong>13:00</strong></div>
+                <div class="timeline-item"><span class="timeline-dot" style="background: #b9c3c0"></span><span>退勤予定</span><strong>18:00</strong></div>
+              </div>
+            </div>
+
+            <div class="card" id="approvals">
+              <div class="card-head">
+                <div>
+                  <div class="card-title">承認管理</div>
+                  <div class="sub">各種申請の承認・却下</div>
+                </div>
+                <button>一括承認</button>
+              </div>
+              <div class="table-wrap">
+                <table>
+                  <thead><tr><th>種別</th><th>件数</th><th>操作</th></tr></thead>
+                  <tbody>
+                    <tr><td><span class="badge violet">シフト</span></td><td>2</td><td>承認 / 却下</td></tr>
+                    <tr><td><span class="badge">休暇</span></td><td>1</td><td>承認 / 却下</td></tr>
+                    <tr><td><span class="badge warn">打刻修正</span></td><td>3</td><td>承認 / 却下</td></tr>
+                    <tr><td><span class="badge blue">残業</span></td><td>1</td><td>承認 / 却下</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="card pad" id="reports">
+              <div class="card-title">月次レポート</div>
+              <div class="sub">月間の勤怠集計とCSVエクスポート</div>
+              <div class="status-row" style="justify-content: flex-start; margin-top: 12px;">
+                <span class="badge">出勤 16日</span>
+                <span class="badge">勤務 126.5h</span>
+                <span class="badge warn">残業 14.5 / 45h</span>
+                <span class="badge ok">有給残 8日</span>
+              </div>
+            </div>
+
+            <div class="card pad" id="members">
+              <div class="card-title">メンバー勤怠一覧</div>
+              <div class="sub">部署ごとに本日の状態・勤務時間・残業を確認</div>
+              <div class="status-row" style="justify-content: flex-start; margin-top: 12px;">
+                <span class="badge ok">勤務中 18名</span>
+                <span class="badge warn">休憩中 2名</span>
+                <span class="badge">未出勤 2名</span>
+              </div>
+            </div>
+
+            <div class="card pad" id="monthly">
+              <div class="card-title">月次締め処理</div>
+              <div class="sub">月末に勤怠を確定して給与計算に回す</div>
+              <div class="status-row" style="justify-content: flex-start; margin-top: 12px;">
+                <span class="badge warn">2026年6月 未締め</span>
+                <span class="badge danger">打刻忘れ 1件</span>
+              </div>
+            </div>
+
+            <div class="card pad" id="employees">
+              <div class="card-title">従業員マスタ</div>
+              <div class="sub">部署構成、権限、勤務形態、有給残を管理</div>
+              <div class="status-row" style="justify-content: flex-start; margin-top: 12px;">
+                <span class="badge">営業部 8名</span>
+                <span class="badge">店舗運営 14名</span>
+                <span class="badge ok">在籍 22名</span>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script>
+      const clock = document.getElementById("clock");
+      const status = document.getElementById("workStatus");
+      const clockIn = document.getElementById("clockIn");
+      const breakStart = document.getElementById("breakStart");
+      const breakEnd = document.getElementById("breakEnd");
+      const clockOut = document.getElementById("clockOut");
+
+      function tick() {
+        clock.textContent = new Date().toLocaleTimeString("ja-JP");
+      }
+
+      function setStatus(text, cls) {
+        status.textContent = text;
+        status.className = `badge ${cls}`;
+      }
+
+      clockIn.addEventListener("click", () => setStatus("勤務中", "ok"));
+      breakStart.addEventListener("click", () => setStatus("休憩中", "warn"));
+      breakEnd.addEventListener("click", () => setStatus("勤務中", "ok"));
+      clockOut.addEventListener("click", () => setStatus("退勤済", ""));
+      tick();
+      setInterval(tick, 1000);
+    </script>
+  </body>
+</html>
