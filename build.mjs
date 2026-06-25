@@ -1,5 +1,5 @@
 import { cpSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
-import { dirname, resolve } from "node:path";
+import { resolve } from "node:path";
 
 const root = resolve(".");
 const dist = resolve(root, "dist");
@@ -25,9 +25,26 @@ function prepareDist() {
   mkdirSync(dist, { recursive: true });
 }
 
-function copyPublicFiles() {
+function getEnvConfigContent() {
+  const url = process.env.VITE_SUPABASE_URL || "";
+  const key = process.env.VITE_SUPABASE_ANON_KEY || "";
+
+  if (!url || !key) return null;
+
+  return `window.SUPABASE_URL = ${JSON.stringify(url)};\nwindow.SUPABASE_ANON_KEY = ${JSON.stringify(key)};\n`;
+}
+
+function getConfigContent() {
+  const envConfig = getEnvConfigContent();
+  if (envConfig) return envConfig;
+
+  ensureFile(configPath, "supabase-config.js");
+  return readFileSync(configPath, "utf8");
+}
+
+function copyPublicFiles(configContent) {
   cpSync(indexPath, resolve(dist, "index.html"));
-  cpSync(configPath, resolve(dist, "supabase-config.js"));
+  writeFileSync(resolve(dist, "supabase-config.js"), configContent, "utf8");
 }
 
 function writeBuildInfo() {
@@ -36,12 +53,12 @@ function writeBuildInfo() {
 }
 
 ensureFile(indexPath, "index.html");
-ensureFile(configPath, "supabase-config.js");
 
 const html = readFileSync(indexPath, "utf8");
+const configContent = getConfigContent();
 validateInlineScript(html);
 prepareDist();
-copyPublicFiles();
+copyPublicFiles(configContent);
 writeBuildInfo();
 
 console.log("build successful");
