@@ -525,6 +525,112 @@
         color: var(--primary);
       }
 
+      .form-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .report-body {
+        white-space: pre-wrap;
+        color: var(--muted);
+        line-height: 1.5;
+      }
+
+      .report-meta {
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .toast-stack {
+        position: fixed;
+        right: 16px;
+        bottom: 16px;
+        z-index: 40;
+        display: grid;
+        gap: 10px;
+        pointer-events: none;
+      }
+
+      .toast {
+        min-width: 220px;
+        max-width: min(92vw, 360px);
+        padding: 12px 14px;
+        border-radius: 10px;
+        border: 1px solid #b9ded5;
+        background: #ffffff;
+        color: var(--text);
+        box-shadow: var(--shadow);
+        font-size: 13px;
+        font-weight: 700;
+        opacity: 0;
+        transform: translateY(8px);
+        transition: opacity .18s ease, transform .18s ease;
+      }
+
+      .toast.is-visible {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      .toast.success {
+        border-color: #b9ded5;
+        background: var(--primary-soft);
+        color: var(--primary);
+      }
+
+      .toast.error {
+        border-color: #f3b3b3;
+        background: var(--red-soft);
+        color: var(--red);
+      }
+
+      .modal-backdrop {
+        position: fixed;
+        inset: 0;
+        z-index: 50;
+        display: grid;
+        place-items: center;
+        padding: 24px;
+        background: rgba(23, 33, 31, .45);
+      }
+
+      .modal-card {
+        width: min(100%, 640px);
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        box-shadow: 0 18px 44px rgba(23, 33, 31, .22);
+        overflow: hidden;
+      }
+
+      .modal-head {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 20px 20px 0;
+      }
+
+      .modal-body {
+        display: grid;
+        gap: 14px;
+        padding: 18px 20px 20px;
+      }
+
+      .modal-actions {
+        display: flex;
+        justify-content: flex-end;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .modal-date {
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 700;
+      }
+
       .admin-actions {
         display: flex;
         flex-wrap: wrap;
@@ -841,18 +947,39 @@
               <div class="card-head">
                 <div>
                   <div class="card-title">日報</div>
-                  <div class="sub">作成・一覧表示・編集・削除</div>
-                </div>
-                <button class="primary">新規作成</button>
+                <div class="sub" id="dailyReportSubtext">日付と本文を入力して送信できます</div>
               </div>
-              <div class="table-wrap">
-                <table>
-                  <thead><tr><th>日付</th><th>タイトル</th><th>状態</th><th>操作</th></tr></thead>
-                  <tbody>
-                    <tr><td data-label="日付">6月18日</td><td data-label="タイトル">顧客対応と棚卸し</td><td data-label="状態"><span class="badge ok">提出済</span></td><td data-label="操作">編集 / 削除</td></tr>
-                    <tr><td data-label="日付">6月17日</td><td data-label="タイトル">新商品の検品</td><td data-label="状態"><span class="badge">下書き</span></td><td data-label="操作">編集 / 削除</td></tr>
-                  </tbody>
-                </table>
+                <div class="admin-actions">
+                  <button id="dailyReportReload" type="button">再読み込み</button>
+                </div>
+              </div>
+              <div class="inline-message" id="dailyReportMessage" role="status"></div>
+              <div id="memberDailyReportPanel">
+                <form class="form" id="dailyReportForm">
+                  <label>日付<input id="dailyReportDate" type="date" required></label>
+                  <label class="full">本文<textarea id="dailyReportBody" placeholder="今日の業務内容、気づき、引き継ぎを記入" required></textarea></label>
+                  <div class="form-actions full">
+                    <button class="primary" id="dailyReportSubmit" type="submit">送信する</button>
+                  </div>
+                </form>
+                <div class="table-wrap">
+                  <table>
+                    <thead><tr><th>日付</th><th>本文</th><th>投稿日時</th><th>操作</th></tr></thead>
+                    <tbody id="dailyReportRows">
+                      <tr><td data-label="状態" colspan="4">ログイン後に日報を読み込みます。</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+              <div class="is-hidden" id="adminDailyReportPanel">
+                <div class="table-wrap">
+                  <table>
+                    <thead><tr><th>作成者</th><th>日付</th><th>タイトル</th><th>状態</th><th>本文</th></tr></thead>
+                    <tbody id="adminDailyReportRows">
+                      <tr><td data-label="状態" colspan="5">管理者でログインすると全員の日報を読み込みます。</td></tr>
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </div>
           </div>
@@ -974,6 +1101,29 @@
       <a href="#daily" data-tab="daily"><span class="tab-icon">✎</span><span>日報</span></a>
     </nav>
 
+    <div class="modal-backdrop is-hidden" id="dailyReportEditModal" aria-hidden="true">
+      <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="dailyReportEditTitle">
+        <div class="modal-head">
+          <div>
+            <h2 class="card-title" id="dailyReportEditTitle">日報を編集</h2>
+            <div class="sub">本文を修正して保存すると一覧に反映されます</div>
+          </div>
+          <button id="dailyReportEditClose" type="button">閉じる</button>
+        </div>
+        <form class="modal-body" id="dailyReportEditForm">
+          <input id="dailyReportEditId" type="hidden">
+          <div class="modal-date" id="dailyReportEditDate">日付: -</div>
+          <label>本文<textarea id="dailyReportEditBody" placeholder="本文を入力" required></textarea></label>
+          <div class="modal-actions">
+            <button id="dailyReportEditCancel" type="button">キャンセル</button>
+            <button class="primary" id="dailyReportEditSubmit" type="submit">保存して反映</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div class="toast-stack" id="toastStack" aria-live="polite" aria-atomic="true"></div>
+
     <script src="/supabase-config.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.108.2/dist/umd/supabase.js"></script>
     <script>
@@ -1012,13 +1162,34 @@
       const shiftSubmit = document.getElementById("shiftSubmit");
       const shiftMessage = document.getElementById("shiftMessage");
       const shiftRows = document.getElementById("shiftRows");
+      const dailyReportSubtext = document.getElementById("dailyReportSubtext");
+      const dailyReportReload = document.getElementById("dailyReportReload");
+      const dailyReportMessage = document.getElementById("dailyReportMessage");
+      const memberDailyReportPanel = document.getElementById("memberDailyReportPanel");
+      const adminDailyReportPanel = document.getElementById("adminDailyReportPanel");
+      const dailyReportForm = document.getElementById("dailyReportForm");
+      const dailyReportDate = document.getElementById("dailyReportDate");
+      const dailyReportBody = document.getElementById("dailyReportBody");
+      const dailyReportSubmit = document.getElementById("dailyReportSubmit");
+      const dailyReportRows = document.getElementById("dailyReportRows");
+      const adminDailyReportRows = document.getElementById("adminDailyReportRows");
+      const dailyReportEditModal = document.getElementById("dailyReportEditModal");
+      const dailyReportEditForm = document.getElementById("dailyReportEditForm");
+      const dailyReportEditId = document.getElementById("dailyReportEditId");
+      const dailyReportEditDate = document.getElementById("dailyReportEditDate");
+      const dailyReportEditBody = document.getElementById("dailyReportEditBody");
+      const dailyReportEditSubmit = document.getElementById("dailyReportEditSubmit");
+      const dailyReportEditClose = document.getElementById("dailyReportEditClose");
+      const dailyReportEditCancel = document.getElementById("dailyReportEditCancel");
       const adminShiftRows = document.getElementById("adminShiftRows");
       const adminShiftMessage = document.getElementById("adminShiftMessage");
       const reloadAdminShifts = document.getElementById("reloadAdminShifts");
       const backToApp = document.getElementById("backToApp");
       const bottomTabs = [...document.querySelectorAll(".bottom-tabs a")];
+      const toastStack = document.getElementById("toastStack");
       let currentUser = null;
       let currentProfile = null;
+      let currentDailyReports = [];
 
       function setAuthMessage(text, type = "") {
         authMessage.textContent = text;
@@ -1063,8 +1234,38 @@
         adminShiftMessage.className = `inline-message ${type}`.trim();
       }
 
+      function setDailyReportMessage(text, type = "") {
+        dailyReportMessage.textContent = text;
+        dailyReportMessage.className = `inline-message ${type}`.trim();
+      }
+
       function setShiftBusy(isBusy) {
         shiftSubmit.disabled = isBusy;
+      }
+
+      function setDailyReportBusy(isBusy) {
+        dailyReportSubmit.disabled = isBusy;
+        dailyReportReload.disabled = isBusy;
+      }
+
+      function setDailyReportEditBusy(isBusy) {
+        dailyReportEditSubmit.disabled = isBusy;
+        dailyReportEditCancel.disabled = isBusy;
+        dailyReportEditClose.disabled = isBusy;
+      }
+
+      function showToast(message, type = "success") {
+        const toast = document.createElement("div");
+        toast.className = `toast ${type}`;
+        toast.textContent = message;
+        toastStack.appendChild(toast);
+        requestAnimationFrame(() => {
+          toast.classList.add("is-visible");
+        });
+        window.setTimeout(() => {
+          toast.classList.remove("is-visible");
+          window.setTimeout(() => toast.remove(), 220);
+        }, 2600);
       }
 
       function isAdminProfile(profile = currentProfile) {
@@ -1100,6 +1301,29 @@
         }).formatToParts(date);
         const values = Object.fromEntries(parts.map((part) => [part.type, part.value]));
         return `${values.year}-${values.month}-${values.day}`;
+      }
+
+      function formatReportDate(dateString) {
+        if (!dateString) return "-";
+        return new Intl.DateTimeFormat("ja-JP", {
+          timeZone: "Asia/Tokyo",
+          year: "numeric",
+          month: "numeric",
+          day: "numeric",
+          weekday: "short",
+        }).format(new Date(`${dateString}T00:00:00+09:00`));
+      }
+
+      function formatReportTimestamp(isoString) {
+        if (!isoString) return "-";
+        return new Intl.DateTimeFormat("ja-JP", {
+          timeZone: "Asia/Tokyo",
+          year: "numeric",
+          month: "numeric",
+          day: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+        }).format(new Date(isoString));
       }
 
       function getTokyoTimeString(date = new Date()) {
@@ -1240,6 +1464,290 @@
           "\"": "&quot;",
           "'": "&#39;",
         }[char]));
+      }
+
+      function getDailyReportStatusLabel(statusValue) {
+        if (statusValue === "submitted") return { text: "提出済", cls: "ok" };
+        return { text: "下書き", cls: "" };
+      }
+
+      function resetDailyReportForm() {
+        dailyReportDate.value = getTokyoDateString();
+        dailyReportBody.value = "";
+        dailyReportSubmit.textContent = "送信する";
+      }
+
+      function closeDailyReportEditModal() {
+        dailyReportEditModal.classList.add("is-hidden");
+        dailyReportEditModal.setAttribute("aria-hidden", "true");
+        dailyReportEditId.value = "";
+        dailyReportEditDate.textContent = "日付: -";
+        dailyReportEditBody.value = "";
+      }
+
+      function openDailyReportEditModal(report) {
+        dailyReportEditId.value = report.id;
+        dailyReportEditDate.textContent = `日付: ${formatReportDate(report.report_date)}`;
+        dailyReportEditBody.value = report.body || "";
+        dailyReportEditModal.classList.remove("is-hidden");
+        dailyReportEditModal.setAttribute("aria-hidden", "false");
+        window.setTimeout(() => dailyReportEditBody.focus(), 0);
+      }
+
+      function renderMemberDailyReports(reports) {
+        if (!reports.length) {
+          dailyReportRows.innerHTML = '<tr><td data-label="状態" colspan="4">日報はまだありません。</td></tr>';
+          return;
+        }
+
+        dailyReportRows.innerHTML = reports.map((report) => {
+          return `
+            <tr>
+              <td data-label="日付">${escapeHtml(formatReportDate(report.report_date))}</td>
+              <td data-label="本文">
+                <div class="report-body">${escapeHtml(report.body)}</div>
+              </td>
+              <td data-label="投稿日時">${escapeHtml(formatReportTimestamp(report.created_at))}</td>
+              <td data-label="操作">
+                <div class="admin-actions">
+                  <button class="small" type="button" data-report-action="edit" data-report-id="${report.id}">編集</button>
+                  <button class="danger small" type="button" data-report-action="delete" data-report-id="${report.id}">削除</button>
+                </div>
+              </td>
+            </tr>
+          `;
+        }).join("");
+      }
+
+      function renderAdminDailyReports(reports) {
+        if (!reports.length) {
+          adminDailyReportRows.innerHTML = '<tr><td data-label="状態" colspan="5">日報はまだありません。</td></tr>';
+          return;
+        }
+
+        adminDailyReportRows.innerHTML = reports.map((report) => {
+          const statusInfo = getDailyReportStatusLabel(report.status);
+          const author = report.profiles?.full_name || report.profiles?.email || "不明";
+          return `
+            <tr>
+              <td data-label="作成者">${escapeHtml(author)}</td>
+              <td data-label="日付">${escapeHtml(formatReportDate(report.report_date))}</td>
+              <td data-label="タイトル">${escapeHtml(report.title)}</td>
+              <td data-label="状態"><span class="badge ${statusInfo.cls}">${statusInfo.text}</span></td>
+              <td data-label="本文"><div class="report-body">${escapeHtml(report.body)}</div></td>
+            </tr>
+          `;
+        }).join("");
+      }
+
+      async function loadDailyReports() {
+        if (!supabaseClient || !currentUser) return;
+
+        setDailyReportMessage("日報を読み込み中です...");
+        try {
+          if (isAdminProfile()) {
+            const { data, error } = await supabaseClient
+              .from("daily_reports")
+              .select("id, report_date, title, body, status, updated_at, created_at, profiles!daily_reports_user_id_fkey(full_name, email)")
+              .order("report_date", { ascending: false })
+              .order("updated_at", { ascending: false });
+            if (error) throw error;
+
+            currentDailyReports = data || [];
+            renderAdminDailyReports(currentDailyReports);
+            setDailyReportMessage("全員の日報を読み込みました。", "success");
+            return;
+          }
+
+          const { data, error } = await supabaseClient
+            .from("daily_reports")
+            .select("id, report_date, title, body, status, updated_at, created_at")
+            .order("created_at", { ascending: false })
+            .order("report_date", { ascending: false });
+          if (error) throw error;
+
+          currentDailyReports = data || [];
+          renderMemberDailyReports(currentDailyReports);
+          setDailyReportMessage("自分の日報を読み込みました。", "success");
+        } catch (error) {
+          setDailyReportMessage(`日報の読み込みに失敗しました: ${error.message}`, "error");
+        }
+      }
+
+      function setDailyReportMode() {
+        const adminMode = isAdminProfile();
+        memberDailyReportPanel.classList.toggle("is-hidden", adminMode);
+        adminDailyReportPanel.classList.toggle("is-hidden", !adminMode);
+        dailyReportSubtext.textContent = adminMode
+          ? "全員の日報を閲覧できます"
+          : "日付と本文を入力して送信できます";
+        if (!adminMode) resetDailyReportForm();
+      }
+
+      function beginDailyReportEdit(reportId) {
+        const report = currentDailyReports.find((entry) => entry.id === reportId);
+        if (!report) {
+          setDailyReportMessage("編集対象の日報が見つかりません。", "error");
+          return;
+        }
+
+        openDailyReportEditModal(report);
+        setDailyReportMessage("日報を編集中です。");
+      }
+
+      async function handleDailyReportSubmit(event) {
+        event.preventDefault();
+
+        if (isAdminProfile()) {
+          setDailyReportMessage("管理者は日報を編集できません。", "error");
+          return;
+        }
+
+        const user = await getSignedInUser();
+        if (!user) return;
+
+        const trimmedBody = dailyReportBody.value.trim();
+        const payload = {
+          report_date: dailyReportDate.value,
+          title: (trimmedBody.split("\n")[0] || "").slice(0, 40) || `${dailyReportDate.value} の日報`,
+          body: trimmedBody,
+          status: "submitted",
+        };
+
+        if (!payload.report_date || !payload.body) {
+          setDailyReportMessage("日付と本文を入力してください。本文は空のまま送信できません。", "error");
+          return;
+        }
+
+        setDailyReportBusy(true);
+        setDailyReportMessage("日報を送信中です...");
+
+        try {
+          const { data, error } = await supabaseClient
+            .from("daily_reports")
+            .upsert({
+              user_id: user.id,
+              ...payload,
+            }, {
+              onConflict: "user_id,report_date",
+            })
+            .select("id")
+            .single();
+          if (error) throw error;
+
+          await saveActionLog(user.id, "daily_report_create", "daily_reports", data.id, payload);
+          setDailyReportMessage("日報を保存しました。", "success");
+          showToast("日報を送信して保存しました。");
+
+          resetDailyReportForm();
+          await loadDailyReports();
+        } catch (error) {
+          setDailyReportMessage(`日報の保存に失敗しました: ${error.message}`, "error");
+          showToast("日報の保存に失敗しました。", "error");
+        } finally {
+          setDailyReportBusy(false);
+        }
+      }
+
+      async function handleDailyReportEditSubmit(event) {
+        event.preventDefault();
+
+        if (isAdminProfile()) {
+          setDailyReportMessage("管理者は日報を編集できません。", "error");
+          return;
+        }
+
+        const reportId = dailyReportEditId.value;
+        const report = currentDailyReports.find((entry) => entry.id === reportId);
+        if (!report) {
+          setDailyReportMessage("編集対象の日報が見つかりません。", "error");
+          closeDailyReportEditModal();
+          return;
+        }
+
+        const trimmedBody = dailyReportEditBody.value.trim();
+        if (!trimmedBody) {
+          setDailyReportMessage("本文は空のまま保存できません。", "error");
+          dailyReportEditBody.focus();
+          return;
+        }
+
+        const user = await getSignedInUser();
+        if (!user) return;
+
+        const payload = {
+          body: trimmedBody,
+          title: (trimmedBody.split("\n")[0] || "").slice(0, 40) || `${report.report_date} の日報`,
+        };
+
+        setDailyReportEditBusy(true);
+        setDailyReportMessage("日報を更新中です...");
+
+        try {
+          const { data, error } = await supabaseClient
+            .from("daily_reports")
+            .update(payload)
+            .eq("id", reportId)
+            .select("id")
+            .single();
+          if (error) throw error;
+
+          await saveActionLog(user.id, "daily_report_update", "daily_reports", data.id, {
+            report_date: report.report_date,
+            ...payload,
+          });
+          closeDailyReportEditModal();
+          await loadDailyReports();
+          setDailyReportMessage("日報を更新しました。", "success");
+          showToast("日報を更新して反映しました。");
+        } catch (error) {
+          setDailyReportMessage(`日報の更新に失敗しました: ${error.message}`, "error");
+          showToast("日報の更新に失敗しました。", "error");
+        } finally {
+          setDailyReportEditBusy(false);
+        }
+      }
+
+      async function deleteDailyReport(reportId) {
+        if (isAdminProfile()) {
+          setDailyReportMessage("管理者は日報を削除できません。", "error");
+          return;
+        }
+
+        const report = currentDailyReports.find((entry) => entry.id === reportId);
+        if (!report) {
+          setDailyReportMessage("削除対象の日報が見つかりません。", "error");
+          return;
+        }
+
+        if (!window.confirm(`日報「${report.title}」を削除しますか?`)) {
+          setDailyReportMessage("削除をキャンセルしました。");
+          return;
+        }
+
+        setDailyReportBusy(true);
+        setDailyReportMessage("日報を削除中です...");
+
+        try {
+          const { error } = await supabaseClient
+            .from("daily_reports")
+            .delete()
+            .eq("id", reportId);
+          if (error) throw error;
+
+          await saveActionLog(currentUser.id, "daily_report_delete", "daily_reports", reportId, {
+            report_date: report.report_date,
+            title: report.title,
+          });
+          setDailyReportMessage("日報を削除しました。", "success");
+          showToast("日報を削除しました。");
+          await loadDailyReports();
+        } catch (error) {
+          setDailyReportMessage(`日報の削除に失敗しました: ${error.message}`, "error");
+          showToast("日報の削除に失敗しました。", "error");
+        } finally {
+          setDailyReportBusy(false);
+        }
       }
 
       function renderMemberShifts(shifts) {
@@ -1409,11 +1917,11 @@
         document.body.classList.remove("admin-route");
       }
 
-      async function saveActionLog(userId, actionType, targetId, detail = {}) {
+      async function saveActionLog(userId, actionType, targetTable, targetId, detail = {}) {
         const { error } = await supabaseClient.from("action_logs").insert({
           user_id: userId,
           action_type: actionType,
-          target_table: "attendances",
+          target_table: targetTable,
           target_id: targetId,
           detail,
         });
@@ -1463,7 +1971,7 @@
             attendance = data;
           }
 
-          await saveActionLog(user.id, "clock_in", attendance.id, {
+          await saveActionLog(user.id, "clock_in", "attendances", attendance.id, {
             work_date: workDate,
             clock_in_at: clockInAt,
             timezone: "Asia/Tokyo",
@@ -1510,7 +2018,7 @@
             .single();
           if (error) throw error;
 
-          await saveActionLog(user.id, "clock_out", data.id, {
+          await saveActionLog(user.id, "clock_out", "attendances", data.id, {
             work_date: workDate,
             clock_out_at: clockOutAt,
             timezone: "Asia/Tokyo",
@@ -1545,6 +2053,8 @@
         moveToProtectedRoute();
         await loadTodayAttendance(user.id);
         await loadMemberShifts();
+        setDailyReportMode();
+        await loadDailyReports();
         routeAfterAuth();
       }
 
@@ -1670,6 +2180,25 @@
       signupButton.addEventListener("click", handleSignUp);
       logoutButton.addEventListener("click", handleLogout);
       shiftForm.addEventListener("submit", handleShiftSubmit);
+      dailyReportForm.addEventListener("submit", handleDailyReportSubmit);
+      dailyReportEditForm.addEventListener("submit", handleDailyReportEditSubmit);
+      dailyReportEditClose.addEventListener("click", closeDailyReportEditModal);
+      dailyReportEditCancel.addEventListener("click", closeDailyReportEditModal);
+      dailyReportEditModal.addEventListener("click", (event) => {
+        if (event.target === dailyReportEditModal) closeDailyReportEditModal();
+      });
+      dailyReportReload.addEventListener("click", loadDailyReports);
+      dailyReportRows.addEventListener("click", (event) => {
+        const button = event.target.closest("[data-report-action]");
+        if (!button) return;
+        if (button.dataset.reportAction === "edit") {
+          beginDailyReportEdit(button.dataset.reportId);
+          return;
+        }
+        if (button.dataset.reportAction === "delete") {
+          deleteDailyReport(button.dataset.reportId);
+        }
+      });
       reloadAdminShifts.addEventListener("click", loadAdminShifts);
       backToApp.addEventListener("click", () => {
         history.pushState(null, "", "/");
