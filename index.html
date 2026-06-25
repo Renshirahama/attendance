@@ -631,6 +631,32 @@
         font-weight: 700;
       }
 
+      .state-panel {
+        padding: 14px 16px;
+        border: 1px dashed var(--line);
+        border-radius: 10px;
+        background: #fbfcfc;
+        color: var(--muted);
+        font-size: 13px;
+        font-weight: 700;
+      }
+
+      .state-panel.error {
+        border-color: #f3b3b3;
+        background: var(--red-soft);
+        color: var(--red);
+      }
+
+      .state-panel.loading {
+        border-style: solid;
+        background: var(--primary-soft);
+        color: var(--primary);
+      }
+
+      .calendar-state {
+        grid-column: 1 / -1;
+      }
+
       .admin-actions {
         display: flex;
         flex-wrap: wrap;
@@ -833,26 +859,27 @@
 
         <section class="grid cards app-page">
           <div class="card pad">
-            <div class="metric">出勤日数</div>
-            <div class="number">16<span class="sub">日</span></div>
-            <div class="delta">前月比 +2日</div>
+            <div class="metric" id="dashboardMetricLabel1">出勤日数</div>
+            <div class="number" id="dashboardMetricValue1">-</div>
+            <div class="delta" id="dashboardMetricDelta1">打刻データを集計します</div>
           </div>
           <div class="card pad">
-            <div class="metric">勤務時間</div>
-            <div class="number">126.5<span class="sub">h</span></div>
-            <div class="delta">通常 112h / 残業 14.5h</div>
+            <div class="metric" id="dashboardMetricLabel2">勤務時間</div>
+            <div class="number" id="dashboardMetricValue2">-</div>
+            <div class="delta" id="dashboardMetricDelta2">勤務時間を計算します</div>
           </div>
           <div class="card pad">
-            <div class="metric">承認待ち</div>
-            <div class="number">7<span class="sub">件</span></div>
-            <div class="delta">シフト・休暇・修正・残業</div>
+            <div class="metric" id="dashboardMetricLabel3">承認待ち</div>
+            <div class="number" id="dashboardMetricValue3">-</div>
+            <div class="delta" id="dashboardMetricDelta3">申請データを集計します</div>
           </div>
           <div class="card pad">
-            <div class="metric">チーム出勤率</div>
-            <div class="number">82<span class="sub">%</span></div>
-            <div class="delta">18 / 22名 出勤中</div>
+            <div class="metric" id="dashboardMetricLabel4">日報件数</div>
+            <div class="number" id="dashboardMetricValue4">-</div>
+            <div class="delta" id="dashboardMetricDelta4">日報データを集計します</div>
           </div>
         </section>
+        <div class="inline-message app-page" id="dashboardMessage" role="status"></div>
 
         <section class="grid layout section app-page">
           <div class="grid">
@@ -910,7 +937,7 @@
               <div class="card-head">
                 <div>
                   <div class="card-title">カレンダー</div>
-                  <div class="sub">月間の出勤・休暇・シフト状況</div>
+                  <div class="sub" id="calendarSubtext">月間の出勤・休暇・シフト状況</div>
                 </div>
                 <div class="status-row">
                   <span class="badge ok">出勤</span>
@@ -918,28 +945,8 @@
                   <span class="badge blue">リモート</span>
                 </div>
               </div>
-              <div class="calendar" aria-label="月間カレンダー">
-                <div class="day muted"><div class="day-num">日</div></div>
-                <div class="day muted"><div class="day-num">月</div></div>
-                <div class="day muted"><div class="day-num">火</div></div>
-                <div class="day muted"><div class="day-num">水</div></div>
-                <div class="day muted"><div class="day-num">木</div></div>
-                <div class="day muted"><div class="day-num">金</div></div>
-                <div class="day muted"><div class="day-num">土</div></div>
-                <div class="day"><div class="day-num">1</div><div class="marks"><span class="dot"></span></div></div>
-                <div class="day"><div class="day-num">2</div><div class="marks"><span class="dot remote"></span></div></div>
-                <div class="day"><div class="day-num">3</div><div class="marks"><span class="dot"></span></div></div>
-                <div class="day"><div class="day-num">4</div><div class="marks"><span class="dot"></span></div></div>
-                <div class="day"><div class="day-num">5</div><div class="marks"><span class="dot leave"></span></div></div>
-                <div class="day"><div class="day-num">6</div></div>
-                <div class="day"><div class="day-num">7</div></div>
-                <div class="day"><div class="day-num">8</div><div class="marks"><span class="dot"></span></div></div>
-                <div class="day"><div class="day-num">9</div><div class="marks"><span class="dot"></span></div></div>
-                <div class="day"><div class="day-num">10</div><div class="marks"><span class="dot remote"></span></div></div>
-                <div class="day"><div class="day-num">11</div><div class="marks"><span class="dot"></span></div></div>
-                <div class="day"><div class="day-num">12</div><div class="marks"><span class="dot"></span></div></div>
-                <div class="day"><div class="day-num">13</div></div>
-                <div class="day"><div class="day-num">14</div></div>
+              <div class="calendar" id="calendarGrid" aria-label="月間カレンダー">
+                <div class="state-panel calendar-state loading">予定を読み込み中です...</div>
               </div>
             </div>
 
@@ -1162,6 +1169,21 @@
       const shiftSubmit = document.getElementById("shiftSubmit");
       const shiftMessage = document.getElementById("shiftMessage");
       const shiftRows = document.getElementById("shiftRows");
+      const dashboardMessage = document.getElementById("dashboardMessage");
+      const dashboardMetricLabel1 = document.getElementById("dashboardMetricLabel1");
+      const dashboardMetricValue1 = document.getElementById("dashboardMetricValue1");
+      const dashboardMetricDelta1 = document.getElementById("dashboardMetricDelta1");
+      const dashboardMetricLabel2 = document.getElementById("dashboardMetricLabel2");
+      const dashboardMetricValue2 = document.getElementById("dashboardMetricValue2");
+      const dashboardMetricDelta2 = document.getElementById("dashboardMetricDelta2");
+      const dashboardMetricLabel3 = document.getElementById("dashboardMetricLabel3");
+      const dashboardMetricValue3 = document.getElementById("dashboardMetricValue3");
+      const dashboardMetricDelta3 = document.getElementById("dashboardMetricDelta3");
+      const dashboardMetricLabel4 = document.getElementById("dashboardMetricLabel4");
+      const dashboardMetricValue4 = document.getElementById("dashboardMetricValue4");
+      const dashboardMetricDelta4 = document.getElementById("dashboardMetricDelta4");
+      const calendarSubtext = document.getElementById("calendarSubtext");
+      const calendarGrid = document.getElementById("calendarGrid");
       const dailyReportSubtext = document.getElementById("dailyReportSubtext");
       const dailyReportReload = document.getElementById("dailyReportReload");
       const dailyReportMessage = document.getElementById("dailyReportMessage");
@@ -1229,6 +1251,11 @@
         shiftMessage.className = `inline-message ${type}`.trim();
       }
 
+      function setDashboardMessage(text, type = "") {
+        dashboardMessage.textContent = text;
+        dashboardMessage.className = `inline-message ${type}`.trim();
+      }
+
       function setAdminShiftMessage(text, type = "") {
         adminShiftMessage.textContent = text;
         adminShiftMessage.className = `inline-message ${type}`.trim();
@@ -1270,6 +1297,16 @@
 
       function isAdminProfile(profile = currentProfile) {
         return profile?.role === "admin";
+      }
+
+      function setTableState(target, colSpan, text, type = "") {
+        const stateClass = type ? ` ${type}` : "";
+        target.innerHTML = `<tr><td data-label="状態" colspan="${colSpan}"><div class="state-panel${stateClass}">${escapeHtml(text)}</div></td></tr>`;
+      }
+
+      function setCalendarState(text, type = "") {
+        const stateClass = type ? ` ${type}` : "";
+        calendarGrid.innerHTML = `<div class="state-panel calendar-state${stateClass}">${escapeHtml(text)}</div>`;
       }
 
       function getStatusLabel(statusValue) {
@@ -1339,6 +1376,10 @@
         return getTokyoTimeString(new Date(isoString));
       }
 
+      function formatWorkHours(value) {
+        return `${value.toFixed(1)}h`;
+      }
+
       function renderAttendance(attendance) {
         if (!attendance) {
           setStatus("未出勤", "");
@@ -1388,10 +1429,6 @@
           .eq("id", user.id)
           .maybeSingle();
 
-        if (selectError) {
-          console.warn("profiles select failed", selectError);
-        }
-
         if (existingProfile) return existingProfile;
 
         const { data, error } = await supabaseClient
@@ -1405,10 +1442,7 @@
           .select("full_name, role")
           .single();
 
-        if (error) {
-          console.warn("profiles upsert failed", error);
-          return { full_name: fullName, role: "member" };
-        }
+        if (selectError || error) return { full_name: fullName, role: "member" };
 
         return data;
       }
@@ -1444,13 +1478,16 @@
       async function loadTodayAttendance(userId) {
         if (!supabaseClient || !userId) return;
 
+        setPunchMessage("今日の打刻を読み込み中です...");
         try {
           const workDate = getTokyoDateString();
           const attendance = await findTodayAttendance(userId, workDate);
           renderAttendance(attendance);
           if (attendance?.clock_in_at || attendance?.clock_out_at) {
             setPunchMessage("今日の打刻データを読み込みました。", "success");
+            return;
           }
+          setPunchMessage("今日の打刻データはまだありません。");
         } catch (error) {
           setPunchMessage(`打刻データの読み込みに失敗しました: ${error.message}`, "error");
         }
@@ -1496,7 +1533,7 @@
 
       function renderMemberDailyReports(reports) {
         if (!reports.length) {
-          dailyReportRows.innerHTML = '<tr><td data-label="状態" colspan="4">日報はまだありません。</td></tr>';
+          setTableState(dailyReportRows, 4, "まだ日報はありません。最初の1件を投稿してください。");
           return;
         }
 
@@ -1521,7 +1558,7 @@
 
       function renderAdminDailyReports(reports) {
         if (!reports.length) {
-          adminDailyReportRows.innerHTML = '<tr><td data-label="状態" colspan="5">日報はまだありません。</td></tr>';
+          setTableState(adminDailyReportRows, 5, "表示できる日報データがありません。");
           return;
         }
 
@@ -1544,6 +1581,8 @@
         if (!supabaseClient || !currentUser) return;
 
         setDailyReportMessage("日報を読み込み中です...");
+        setTableState(dailyReportRows, 4, "日報を読み込み中です...", "loading");
+        setTableState(adminDailyReportRows, 5, "日報を読み込み中です...", "loading");
         try {
           if (isAdminProfile()) {
             const { data, error } = await supabaseClient
@@ -1555,7 +1594,7 @@
 
             currentDailyReports = data || [];
             renderAdminDailyReports(currentDailyReports);
-            setDailyReportMessage("全員の日報を読み込みました。", "success");
+            setDailyReportMessage(currentDailyReports.length ? "全員の日報を読み込みました。" : "表示できる日報データがありません。", currentDailyReports.length ? "success" : "");
             return;
           }
 
@@ -1568,8 +1607,9 @@
 
           currentDailyReports = data || [];
           renderMemberDailyReports(currentDailyReports);
-          setDailyReportMessage("自分の日報を読み込みました。", "success");
+          setDailyReportMessage(currentDailyReports.length ? "自分の日報を読み込みました。" : "まだ日報はありません。", currentDailyReports.length ? "success" : "");
         } catch (error) {
+          setTableState(isAdminProfile() ? adminDailyReportRows : dailyReportRows, isAdminProfile() ? 5 : 4, `日報の読み込みに失敗しました: ${error.message}`, "error");
           setDailyReportMessage(`日報の読み込みに失敗しました: ${error.message}`, "error");
         }
       }
@@ -1752,7 +1792,7 @@
 
       function renderMemberShifts(shifts) {
         if (!shifts.length) {
-          shiftRows.innerHTML = '<tr><td data-label="状態" colspan="4">シフト申請はまだありません。</td></tr>';
+          setTableState(shiftRows, 4, "まだシフト申請はありません。");
           return;
         }
 
@@ -1772,6 +1812,8 @@
       async function loadMemberShifts() {
         if (!supabaseClient || !currentUser) return;
 
+        setShiftMessage("シフト申請を読み込み中です...");
+        setTableState(shiftRows, 4, "シフト申請を読み込み中です...", "loading");
         try {
           const { data, error } = await supabaseClient
             .from("shifts")
@@ -1783,7 +1825,9 @@
           renderMemberShifts(data || []);
           const pendingCount = (data || []).filter((shift) => shift.status === "pending").length;
           document.querySelector("#shifts .badge.warn").textContent = `${pendingCount}件 承認待ち`;
+          setShiftMessage((data || []).length ? "シフト申請を読み込みました。" : "まだシフト申請はありません。", (data || []).length ? "success" : "");
         } catch (error) {
+          setTableState(shiftRows, 4, `シフト履歴の読み込みに失敗しました: ${error.message}`, "error");
           setShiftMessage(`シフト履歴の読み込みに失敗しました: ${error.message}`, "error");
         }
       }
@@ -1819,7 +1863,7 @@
 
       function renderAdminShifts(shifts) {
         if (!shifts.length) {
-          adminShiftRows.innerHTML = '<tr><td data-label="状態" colspan="6">シフト申請はまだありません。</td></tr>';
+          setTableState(adminShiftRows, 6, "表示できるシフト申請はありません。");
           return;
         }
 
@@ -1851,6 +1895,7 @@
         if (!supabaseClient || !currentUser || !isAdminProfile()) return;
 
         setAdminShiftMessage("シフト申請を読み込み中です...");
+        setTableState(adminShiftRows, 6, "シフト申請を読み込み中です...", "loading");
         try {
           const { data, error } = await supabaseClient
             .from("shifts")
@@ -1859,8 +1904,9 @@
           if (error) throw error;
 
           renderAdminShifts(data || []);
-          setAdminShiftMessage("シフト申請を読み込みました。", "success");
+          setAdminShiftMessage((data || []).length ? "シフト申請を読み込みました。" : "表示できるシフト申請はありません。", (data || []).length ? "success" : "");
         } catch (error) {
+          setTableState(adminShiftRows, 6, `シフト申請の読み込みに失敗しました: ${error.message}`, "error");
           setAdminShiftMessage(`シフト申請の読み込みに失敗しました: ${error.message}`, "error");
         }
       }
@@ -1918,15 +1964,161 @@
       }
 
       async function saveActionLog(userId, actionType, targetTable, targetId, detail = {}) {
-        const { error } = await supabaseClient.from("action_logs").insert({
+        await supabaseClient.from("action_logs").insert({
           user_id: userId,
           action_type: actionType,
           target_table: targetTable,
           target_id: targetId,
           detail,
         });
+      }
 
-        if (error) console.warn("action log failed", error);
+      function getCurrentMonthRange() {
+        const now = new Date();
+        const tokyo = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Tokyo" }));
+        const year = tokyo.getFullYear();
+        const month = tokyo.getMonth();
+        const lastDay = new Date(year, month + 1, 0).getDate();
+        return {
+          year,
+          month,
+          start: `${year}-${String(month + 1).padStart(2, "0")}-01`,
+          end: `${year}-${String(month + 1).padStart(2, "0")}-${String(lastDay).padStart(2, "0")}`,
+        };
+      }
+
+      function resetDashboardMetrics() {
+        dashboardMetricLabel1.textContent = "出勤日数";
+        dashboardMetricValue1.textContent = "-";
+        dashboardMetricDelta1.textContent = "打刻データを集計します";
+        dashboardMetricLabel2.textContent = "勤務時間";
+        dashboardMetricValue2.textContent = "-";
+        dashboardMetricDelta2.textContent = "勤務時間を計算します";
+        dashboardMetricLabel3.textContent = "承認待ち";
+        dashboardMetricValue3.textContent = "-";
+        dashboardMetricDelta3.textContent = "申請データを集計します";
+        dashboardMetricLabel4.textContent = "日報件数";
+        dashboardMetricValue4.textContent = "-";
+        dashboardMetricDelta4.textContent = "日報データを集計します";
+      }
+
+      function renderDashboardMetrics(attendances, shifts, reports) {
+        const workDays = attendances.filter((item) => item.clock_in_at).length;
+        const workHours = attendances.reduce((total, item) => {
+          if (!item.clock_in_at || !item.clock_out_at) return total;
+          const start = new Date(item.clock_in_at).getTime();
+          const end = new Date(item.clock_out_at).getTime();
+          const breakDuration = item.break_start_at && item.break_end_at
+            ? Math.max(0, new Date(item.break_end_at).getTime() - new Date(item.break_start_at).getTime())
+            : 0;
+          return total + Math.max(0, end - start - breakDuration) / 36e5;
+        }, 0);
+        const pendingShifts = shifts.filter((item) => item.status === "pending").length;
+        const reportCount = reports.length;
+
+        dashboardMetricValue1.textContent = `${workDays}日`;
+        dashboardMetricDelta1.textContent = "今月に打刻した日数です";
+        dashboardMetricValue2.textContent = formatWorkHours(workHours);
+        dashboardMetricDelta2.textContent = "今月の累計勤務時間です";
+        dashboardMetricValue3.textContent = `${pendingShifts}件`;
+        dashboardMetricDelta3.textContent = "未処理のシフト申請件数です";
+        dashboardMetricValue4.textContent = `${reportCount}件`;
+        dashboardMetricDelta4.textContent = "今月に保存した日報件数です";
+      }
+
+      function renderCalendar(records) {
+        const monthRange = getCurrentMonthRange();
+        const monthDate = new Date(`${monthRange.start}T00:00:00+09:00`);
+        const firstDay = new Date(monthDate.getFullYear(), monthDate.getMonth(), 1);
+        const lastDay = new Date(monthDate.getFullYear(), monthDate.getMonth() + 1, 0);
+        const weekdays = ["日", "月", "火", "水", "木", "金", "土"];
+        const dayMarks = new Map();
+
+        records.forEach((record) => {
+          const existing = dayMarks.get(record.date) || new Set();
+          existing.add(record.type);
+          dayMarks.set(record.date, existing);
+        });
+
+        const cells = weekdays.map((label) => `<div class="day muted"><div class="day-num">${label}</div></div>`);
+        for (let index = 0; index < firstDay.getDay(); index += 1) {
+          cells.push('<div class="day" aria-hidden="true"></div>');
+        }
+        for (let day = 1; day <= lastDay.getDate(); day += 1) {
+          const date = `${monthDate.getFullYear()}-${String(monthDate.getMonth() + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+          const marks = [...(dayMarks.get(date) || [])].map((type) => {
+            if (type === "shift") return '<span class="dot remote"></span>';
+            if (type === "report") return '<span class="dot leave"></span>';
+            return '<span class="dot"></span>';
+          }).join("");
+          cells.push(`<div class="day"><div class="day-num">${day}</div><div class="marks">${marks}</div></div>`);
+        }
+        calendarGrid.innerHTML = cells.join("");
+      }
+
+      async function loadDashboardAndCalendar() {
+        if (!supabaseClient || !currentUser) return;
+
+        resetDashboardMetrics();
+        setDashboardMessage("ダッシュボードを読み込み中です...");
+        setCalendarState("予定を読み込み中です...", "loading");
+        calendarSubtext.textContent = "今月の打刻・シフト・日報を確認できます";
+
+        try {
+          const month = getCurrentMonthRange();
+          const [attendanceResult, shiftResult, reportResult] = await Promise.all([
+            supabaseClient
+              .from("attendances")
+              .select("work_date, clock_in_at, clock_out_at, break_start_at, break_end_at, status")
+              .gte("work_date", month.start)
+              .lte("work_date", month.end)
+              .order("work_date", { ascending: false }),
+            supabaseClient
+              .from("shifts")
+              .select("shift_date, status")
+              .gte("shift_date", month.start)
+              .lte("shift_date", month.end)
+              .order("shift_date", { ascending: false }),
+            supabaseClient
+              .from("daily_reports")
+              .select("report_date, status")
+              .gte("report_date", month.start)
+              .lte("report_date", month.end)
+              .order("report_date", { ascending: false }),
+          ]);
+
+          if (attendanceResult.error) throw attendanceResult.error;
+          if (shiftResult.error) throw shiftResult.error;
+          if (reportResult.error) throw reportResult.error;
+
+          const attendances = attendanceResult.data || [];
+          const shifts = shiftResult.data || [];
+          const reports = reportResult.data || [];
+          const combinedCount = attendances.length + shifts.length + reports.length;
+
+          if (!combinedCount) {
+            resetDashboardMetrics();
+            dashboardMetricValue1.textContent = "0日";
+            dashboardMetricValue2.textContent = "0.0h";
+            dashboardMetricValue3.textContent = "0件";
+            dashboardMetricValue4.textContent = "0件";
+            setDashboardMessage("まだ表示できるデータがありません。");
+            setCalendarState("今月の予定データはありません。最初の操作を追加してください。");
+            return;
+          }
+
+          renderDashboardMetrics(attendances, shifts, reports);
+          setDashboardMessage("ダッシュボードを読み込みました。", "success");
+          renderCalendar([
+            ...attendances.map((item) => ({ date: item.work_date, type: "attendance" })),
+            ...shifts.map((item) => ({ date: item.shift_date, type: "shift" })),
+            ...reports.map((item) => ({ date: item.report_date, type: "report" })),
+          ]);
+        } catch (error) {
+          resetDashboardMetrics();
+          setDashboardMessage(`ダッシュボードの読み込みに失敗しました: ${error.message}`, "error");
+          setCalendarState(`予定の読み込みに失敗しました: ${error.message}`, "error");
+        }
       }
 
       async function handleClockIn() {
@@ -2051,10 +2243,13 @@
         appShell.classList.remove("is-hidden");
         document.body.classList.add("is-authenticated");
         moveToProtectedRoute();
-        await loadTodayAttendance(user.id);
-        await loadMemberShifts();
         setDailyReportMode();
-        await loadDailyReports();
+        await Promise.all([
+          loadTodayAttendance(user.id),
+          loadMemberShifts(),
+          loadDailyReports(),
+          loadDashboardAndCalendar(),
+        ]);
         routeAfterAuth();
       }
 
