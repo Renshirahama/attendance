@@ -1,10 +1,18 @@
+"use client";
+
 import { Monitor } from "lucide-react";
+import {
+  SkeletonBlocks,
+  SkeletonList,
+  StateMessage,
+} from "@/components/data-state";
+import { useDemoCollectionState } from "@/hooks/use-demo-collection-state";
 
 const stats = [
-  { label: "今日の出勤者", value: "12", unit: "人", accent: "text-blue-600" },
-  { label: "勤務中", value: "8", unit: "人", accent: "text-emerald-600" },
-  { label: "未提出日報", value: "3", unit: "件", accent: "text-amber-600" },
-  { label: "承認待ちシフト", value: "5", unit: "件", accent: "text-rose-600" },
+  { label: "出勤率", value: "96.2", unit: "%", accent: "text-blue-600" },
+  { label: "平均勤務時間", value: "8h12", unit: "m", accent: "text-sky-600" },
+  { label: "未承認件数", value: "3", unit: "件", accent: "text-amber-600" },
+  { label: "今月残業", value: "12.5", unit: "h", accent: "text-rose-600" },
 ];
 
 const todayAttendance = [
@@ -29,28 +37,79 @@ const statusStyle: Record<string, string> = {
 };
 
 export default function DashboardPage() {
+  const dashboardState = useDemoCollectionState(
+    [...todayAttendance, ...pendingShifts],
+    {
+      errorMessage:
+        "ダッシュボードの読み込みに失敗しました。時間をおいて再読み込みしてください。",
+    },
+  );
+
+  const renderHeader = () => (
+    <header className="mb-8 rounded-[28px] border border-zinc-200 bg-white px-6 py-6 shadow-sm">
+      <div className="flex items-center gap-3">
+        <Monitor className="h-6 w-6 text-blue-600" />
+        <h1 className="text-2xl font-semibold tracking-tight text-zinc-900">
+          ダッシュボード
+        </h1>
+      </div>
+      <p className="mt-1 text-sm text-zinc-500">
+        メンバー全体の勤務状況・申請を一覧で確認できます
+      </p>
+    </header>
+  );
+
+  if (dashboardState.isLoading) {
+    return (
+      <div>
+        {renderHeader()}
+        <SkeletonBlocks />
+        <div className="mt-6">
+          <SkeletonList title="勤務状況を読み込み中です" rows={3} />
+        </div>
+      </div>
+    );
+  }
+
+  if (dashboardState.error) {
+    return (
+      <div>
+        {renderHeader()}
+        <StateMessage
+          title="ダッシュボードを表示できません"
+          message={dashboardState.error}
+          tone="error"
+        />
+      </div>
+    );
+  }
+
+  if (dashboardState.isEmpty) {
+    return (
+      <div>
+        {renderHeader()}
+        <StateMessage
+          title="ダッシュボードに表示するデータがありません"
+          message="勤務状況や承認待ち申請が追加されると、ここに表示されます。"
+        />
+      </div>
+    );
+  }
+
   return (
     <div>
-      <header className="mb-8">
-        <div className="flex items-center gap-3">
-          <Monitor className="h-6 w-6 text-blue-600" />
-          <h1 className="text-2xl font-semibold tracking-tight text-zinc-900">
-            ダッシュボード
-          </h1>
-        </div>
-        <p className="mt-1 text-sm text-zinc-500">
-          メンバー全体の勤務状況・申請を一覧で確認できます
-        </p>
-      </header>
+      {renderHeader()}
 
-      <section className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+      <section className="grid grid-cols-2 gap-4 xl:grid-cols-4">
         {stats.map((s) => (
           <div
             key={s.label}
-            className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm"
+            className="rounded-[28px] border border-zinc-200 bg-white p-6 shadow-sm"
           >
-            <p className="text-xs font-medium text-zinc-500 whitespace-nowrap text-center">{s.label}</p>
-            <p className="mt-4 flex items-baseline justify-center gap-1">
+            <p className="text-xs font-medium text-zinc-500 whitespace-nowrap">
+              {s.label}
+            </p>
+            <p className="mt-4 flex items-baseline gap-1">
               <span
                 className={`text-4xl font-bold tracking-tight tabular-nums ${s.accent}`}
               >
@@ -62,11 +121,12 @@ export default function DashboardPage() {
         ))}
       </section>
 
-      <section className="mt-10">
+      <section className="mt-10 grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
+        <div>
         <h2 className="text-base font-semibold text-zinc-900">
           今日の勤務状況
         </h2>
-        <div className="mt-4 overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm">
+        <div className="mt-4 overflow-hidden rounded-[28px] border border-zinc-200 bg-white shadow-sm">
           <table className="w-full text-sm">
             <thead className="bg-zinc-50 text-left text-xs font-medium text-zinc-500">
               <tr>
@@ -100,13 +160,12 @@ export default function DashboardPage() {
             </tbody>
           </table>
         </div>
-      </section>
-
-      <section className="mt-10">
+        </div>
+        <div>
         <h2 className="text-base font-semibold text-zinc-900">
           承認待ちのシフト申請
         </h2>
-        <ul className="mt-4 divide-y divide-zinc-100 rounded-2xl border border-zinc-200 bg-white shadow-sm">
+        <ul className="mt-4 divide-y divide-zinc-100 rounded-[28px] border border-zinc-200 bg-white shadow-sm">
           {pendingShifts.map((s, i) => (
             <li
               key={i}
@@ -129,6 +188,7 @@ export default function DashboardPage() {
             </li>
           ))}
         </ul>
+        </div>
       </section>
     </div>
   );

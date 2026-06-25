@@ -1,9 +1,12 @@
 import type { Shift, ShiftStatus } from "@/lib/shifts";
 import { SHIFT_STATUS_LABEL } from "@/lib/shifts";
 import { formatDate } from "@/lib/formatters";
+import { SkeletonList, StateMessage } from "@/components/data-state";
 
 type ShiftHistoryProps = {
   readonly shifts: readonly Shift[];
+  readonly isLoading?: boolean;
+  readonly error?: string | null;
 };
 
 const STATUS_STYLE: Record<ShiftStatus, string> = {
@@ -17,14 +20,37 @@ function formatShiftDate(dateStr: string): string {
   return formatDate(date);
 }
 
-export function ShiftHistory({ shifts }: ShiftHistoryProps) {
+export function ShiftHistory({
+  shifts,
+  isLoading = false,
+  error = null,
+}: ShiftHistoryProps) {
+  if (isLoading) {
+    return <SkeletonList title="申請履歴を読み込み中です" rows={3} />;
+  }
+
+  if (error) {
+    return (
+      <section className="lg:w-1/2">
+        <h2 className="text-base font-semibold text-zinc-900">申請履歴</h2>
+        <div className="mt-4">
+          <StateMessage
+            title="申請履歴を表示できません"
+            message={error}
+            tone="error"
+          />
+        </div>
+      </section>
+    );
+  }
+
   if (shifts.length === 0) {
     return (
       <section className="lg:w-1/2">
         <h2 className="text-base font-semibold text-zinc-900">申請履歴</h2>
         <div className="mt-4 rounded-2xl border border-zinc-200 bg-white p-8 shadow-sm">
           <p className="text-center text-sm text-zinc-400">
-            まだ申請がありません
+            申請はまだありません
           </p>
         </div>
       </section>

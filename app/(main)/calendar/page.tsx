@@ -1,4 +1,8 @@
+"use client";
+
 import { CalendarDays } from "lucide-react";
+import { SkeletonBlocks, StateMessage } from "@/components/data-state";
+import { useDemoCollectionState } from "@/hooks/use-demo-collection-state";
 
 type DayStatus = "worked" | "approved" | "pending" | "rejected";
 
@@ -141,19 +145,65 @@ function DayCell({ data }: { readonly data: DayData }) {
 }
 
 export default function CalendarPage() {
+  const calendarState = useDemoCollectionState(
+    calendar.filter((item) => item.day !== null && item.status),
+    {
+      errorMessage:
+        "カレンダーデータの取得に失敗しました。時間をおいて再読み込みしてください。",
+    },
+  );
+
+  const renderHeader = () => (
+    <header className="mb-8">
+      <div className="flex items-center gap-3">
+        <CalendarDays className="h-6 w-6 text-blue-600" />
+        <h1 className="text-2xl font-semibold tracking-tight text-zinc-900">
+          カレンダー
+        </h1>
+      </div>
+      <p className="mt-1 text-sm text-zinc-500">
+        勤務予定・出勤実績・申請中シフトを月単位で確認できます
+      </p>
+    </header>
+  );
+
+  if (calendarState.isLoading) {
+    return (
+      <div>
+        {renderHeader()}
+        <SkeletonBlocks />
+      </div>
+    );
+  }
+
+  if (calendarState.error) {
+    return (
+      <div>
+        {renderHeader()}
+        <StateMessage
+          title="カレンダーを表示できません"
+          message={calendarState.error}
+          tone="error"
+        />
+      </div>
+    );
+  }
+
+  if (calendarState.isEmpty) {
+    return (
+      <div>
+        {renderHeader()}
+        <StateMessage
+          title="今月の勤務データがありません"
+          message="勤務実績や申請が追加されると、ここに反映されます。"
+        />
+      </div>
+    );
+  }
+
   return (
     <div>
-      <header className="mb-8">
-        <div className="flex items-center gap-3">
-          <CalendarDays className="h-6 w-6 text-blue-600" />
-          <h1 className="text-2xl font-semibold tracking-tight text-zinc-900">
-            カレンダー
-          </h1>
-        </div>
-        <p className="mt-1 text-sm text-zinc-500">
-          勤務予定・出勤実績・申請中シフトを月単位で確認できます
-        </p>
-      </header>
+      {renderHeader()}
 
       <section className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm">
         <div className="flex items-center justify-between mb-6">

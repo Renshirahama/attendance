@@ -3,6 +3,7 @@
 import { Timer } from "lucide-react";
 import { useAttendance } from "@/hooks/use-attendance";
 import { useClock } from "@/hooks/use-clock";
+import { useDemoCollectionState } from "@/hooks/use-demo-collection-state";
 import { ClockDisplay } from "./_components/clock-display";
 import { StatusBadge } from "./_components/status-badge";
 import { ActionButtons } from "./_components/action-buttons";
@@ -22,6 +23,10 @@ export default function ClockPage() {
   } = useAttendance();
   const now = useClock();
   const nowMs = now?.getTime() ?? Date.now();
+  const historyState = useDemoCollectionState(state.records, {
+    errorMessage:
+      "勤怠履歴の取得に失敗しました。時間をおいて再読み込みしてください。",
+  });
 
   return (
     <div>
@@ -62,7 +67,11 @@ export default function ClockPage() {
         />
       </section>
 
-      <AttendanceHistory records={state.records} />
+      <AttendanceHistory
+        records={historyState.items}
+        isLoading={historyState.isLoading}
+        error={historyState.error}
+      />
     </div>
   );
 }

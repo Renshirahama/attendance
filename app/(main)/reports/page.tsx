@@ -1,19 +1,66 @@
+"use client";
+
 import { FilePenLine } from "lucide-react";
+import { SkeletonBlocks, StateMessage } from "@/components/data-state";
+import { useDemoCollectionState } from "@/hooks/use-demo-collection-state";
 
 export default function ReportsPage() {
+  const reportState = useDemoCollectionState([{ id: "today-report" }], {
+    errorMessage:
+      "日報データの取得に失敗しました。時間をおいて再読み込みしてください。",
+  });
+
+  const renderHeader = () => (
+    <header className="mb-8">
+      <div className="flex items-center gap-3">
+        <FilePenLine className="h-6 w-6 text-blue-600" />
+        <h1 className="text-2xl font-semibold tracking-tight text-zinc-900">
+          日報
+        </h1>
+      </div>
+      <p className="mt-1 text-sm text-zinc-500">
+        本日の業務内容を記録し、管理者と共有します
+      </p>
+    </header>
+  );
+
+  if (reportState.isLoading) {
+    return (
+      <div>
+        {renderHeader()}
+        <SkeletonBlocks />
+      </div>
+    );
+  }
+
+  if (reportState.error) {
+    return (
+      <div>
+        {renderHeader()}
+        <StateMessage
+          title="日報を表示できません"
+          message={reportState.error}
+          tone="error"
+        />
+      </div>
+    );
+  }
+
+  if (reportState.isEmpty) {
+    return (
+      <div>
+        {renderHeader()}
+        <StateMessage
+          title="今日の日報データがありません"
+          message="日報を作成すると、ここに入力フォームと内容が表示されます。"
+        />
+      </div>
+    );
+  }
+
   return (
     <div>
-      <header className="mb-8">
-        <div className="flex items-center gap-3">
-          <FilePenLine className="h-6 w-6 text-blue-600" />
-          <h1 className="text-2xl font-semibold tracking-tight text-zinc-900">
-            日報
-          </h1>
-        </div>
-        <p className="mt-1 text-sm text-zinc-500">
-          本日の業務内容を記録し、管理者と共有します
-        </p>
-      </header>
+      {renderHeader()}
 
       <section className="rounded-2xl border border-zinc-200 bg-white p-8 shadow-sm">
         <div className="flex items-center justify-between">
